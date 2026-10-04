@@ -15,8 +15,11 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.deepseek.DeepSeekChatModel;
+import org.springframework.ai.content.Media;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeType;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.Disposable;
@@ -37,13 +40,16 @@ import java.util.UUID;
 
 /**
  * AI找物助手 业务实现
+ *
+ * 用 OpenAiChatModel(走 OpenAI 兼容协议) 指向 DeepSeek,
+ * 这样 UserMessage 里塞的 Media(图片) 才能被正确序列化传给模型
  */
 @Slf4j
 @Service
 public class AiServiceImpl implements IAiService {
 
     @Resource
-    private DeepSeekChatModel chatModel;
+    private OpenAiChatModel chatModel;
 
     @Resource
     private ItemMapper itemMapper;
@@ -59,7 +65,6 @@ public class AiServiceImpl implements IAiService {
     private static final String MARK_FOUND = "[PUBLISH_FOUND]";
 
     //图片本地存储目录: 项目运行目录下的 upload/ai, 跨平台安全
-    //生产环境建议换成 OSS
     private static final String IMAGE_UPLOAD_DIR = "upload/ai/";
     //对外可访问的图片前缀(需和静态资源映射/Nginx 对齐)
     private static final String IMAGE_PUBLIC_PREFIX = "/upload/ai/";
@@ -69,8 +74,10 @@ public class AiServiceImpl implements IAiService {
 
             工作规范:
             1. 用户描述丢了什么/捡到什么时, 必须先调用searchItems工具在平台里检索, 再根据结果回答, 不允许凭空编造平台信息。
-            2. 用户上传图片时, 先用你的视觉能力识别图片里的物品(品类、颜色、品牌、形状、材质等),
+            2. 用户上传图片时, 先仔细识别图片里的物品(品类、颜色、品牌、形状、材质等特征),
                再调用searchByImage工具, 把识别出的特征词作为keywords传入检索, 不要跳过工具直接回答。
+               识别特征词时按顺序: 品类(耳机/水杯/钱包) > 品牌(AirPods/小米) > 颜色(黑色/白色) > 形状材质(入耳式/不锈钢)。
+               若图片模糊无法识别, 直接告诉用户"图片看不清, 请补充描述", 不要瞎猜关键词。
             3. 检索到相关信息时, 告诉用户找到了几条, 提醒用户点击下方卡片查看详情、仔细核对物品特征后再联系对方。
             4. 检索不到时: 可以主动提出帮用户发布信息。用户同意由你代发布, 就用publishItem;
                用户没同意或没回应发布意愿, 就在回复的最末尾输出标记: 用户丢了东西输出[PUBLISH_LOST], 捡到东西输出[PUBLISH_FOUND],
@@ -124,13 +131,8 @@ public class AiServiceImpl implements IAiService {
             List<Message> messages = new ArrayList<>();
             messages.add(new SystemMessage(String.format(SYSTEM_PROMPT, LocalDate.now())));
             messages.addAll(toMessages(request.getHistory()));
-            //本轮用户消息: 图片路径只作为"有图"标记提示模型
-            String userText = hasImage
-                    ? (question.isEmpty()
-                    ? "用户上传了一张物品图片, 请用searchByImage工具按物品特征帮我检索"
-                    : question + "\n(用户还上传了一张物品图片, 请优先用searchByImage工具检索)")
-                    : question;
-            messages.add(new UserMessage(userText));
+            // ★ 关键: 走 buildUserMessage, 有图就把图片二进制塞进 Media 真正传给模型
+            messages.add(buildUserMessage(question, imageUrl));
 
             stream = ChatClient.create(chatModel).prompt()
                     .messages(messages)
@@ -184,19 +186,62 @@ public class AiServiceImpl implements IAiService {
     }
 
     /**
+     * 组装本轮用户消息: 有图片就把图片二进制塞进 Media, 真正传给模型
+     */
+    private UserMessage buildUserMessage(String text, String imageUrl) {
+        String finalText = (text == null || text.isBlank())
+                ? "请帮我找找图片里的这个物品"
+                : text;
+
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return new UserMessage(finalText);
+        }
+
+        try {
+            // 从保存的 URL 反推磁盘路径
+            Path imgPath = Paths.get(IMAGE_UPLOAD_DIR)
+                    .toAbsolutePath().normalize()
+                    .resolve(imageUrl.substring(imageUrl.lastIndexOf("/") + 1));
+            byte[] bytes = Files.readAllBytes(imgPath);
+
+            String mimeType = guessMimeType(imageUrl);
+            Media media = new Media(MimeType.valueOf(mimeType), new ByteArrayResource(bytes));
+
+            log.info("构造多模态消息: imageUrl={}, 大小={} bytes, mime={}",
+                    imageUrl, bytes.length, mimeType);
+
+            return UserMessage.builder()
+                    .text(finalText + "\n请先仔细识别图片里的物品特征(品类/颜色/品牌/形状), 再用 searchByImage 工具检索")
+                    .media(media)
+                    .build();
+        } catch (IOException e) {
+            log.error("读取图片失败: {}", imageUrl, e);
+            return new UserMessage(finalText + "\n(图片读取失败, 请让用户重传)");
+        }
+    }
+
+    /**
+     * 按扩展名猜 MIME 类型
+     */
+    private String guessMimeType(String url) {
+        String lower = url.toLowerCase();
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".gif")) return "image/gif";
+        if (lower.endsWith(".webp")) return "image/webp";
+        return "image/jpeg";
+    }
+
+    /**
      * 保存图片, 返回对外可访问的 URL
-     * 用绝对路径 + Files.copy, 避开 Windows 上 transferTo 对相对路径的解释问题
      */
     @Override
     public String saveImage(MultipartFile file) {
         try {
-            // 1. 用绝对路径
             Path dir = Paths.get(IMAGE_UPLOAD_DIR).toAbsolutePath().normalize();
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
             }
 
-            // 2. 拼文件名(防重名 + 保留扩展名)
             String ext = "";
             String original = file.getOriginalFilename();
             if (original != null && original.contains(".")) {
@@ -205,7 +250,6 @@ public class AiServiceImpl implements IAiService {
             String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
             Path target = dir.resolve(fileName);
 
-            // 3. 用 Files.copy 写文件
             try (InputStream in = file.getInputStream()) {
                 Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
             }
@@ -220,7 +264,7 @@ public class AiServiceImpl implements IAiService {
     }
 
     /**
-     * 历史消息转模型消息(保证最后一条不是 assistant, 否则模型报错)
+     * 历史消息转模型消息(保证最后一条不是 assistant)
      */
     private List<Message> toMessages(List<AiChatRequest.HistoryMessage> history) {
         List<Message> messages = new ArrayList<>();

@@ -54,18 +54,25 @@ spring:
       # 如果设置为false，Spring将不会解析multipart/form-data类型的请求
       enabled: true
   # Spring AI 接入 DeepSeek 大模型(小程序AI找物助手用)
+#  ai:
+#    deepseek:
+#      # DeepSeek 开放平台申请的 API Key
+#      api-key: sk-26ac80f8ecdc404aa9fff9428a5f5a39
+#      chat:
+#        # 使用的模型
+#        model: deepseek-flash
+#        # 回答的随机程度: 越低越严谨, 越高越发散
+#        temperature: 0.3
+#    # LLM调用失败只试1次, 快速降级, 避免小程序端长时间转圈
+#    retry:
+#      max-attempts: 1
   ai:
-    deepseek:
-      # DeepSeek 开放平台申请的 API Key
+    openai:
       api-key: sk-26ac80f8ecdc404aa9fff9428a5f5a39
+      base-url: https://api.deepseek.com
       chat:
-        # 使用的模型
-        model: deepseek-flash
-        # 回答的随机程度: 越低越严谨, 越高越发散
-        temperature: 0.3
-    # LLM调用失败只试1次, 快速降级, 避免小程序端长时间转圈
-    retry:
-      max-attempts: 1
+        options:
+          model: deepseek-flash
 
 # 环境配置
 server:

@@ -7,6 +7,7 @@ import com.fast.content.mapper.CategoryMapper;
 import com.fast.item.domain.Item;
 import com.fast.item.mapper.ItemMapper;
 import com.fast.system.domain.LoginUser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
@@ -18,6 +19,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * AI找物Agent的工具箱 — 注册给大模型自主调用
+ */
+@Slf4j
 public class AiTools {
 
     private final ItemMapper itemMapper;
@@ -91,6 +96,7 @@ public class AiTools {
     public String searchByImage(
             @ToolParam(description = "图片中识别出的物品特征词数组, 如[\"黑色\",\"耳机\",\"AirPods\"]") List<String> keywords,
             @ToolParam(description = "偏好的信息类型: lost寻物启事 found失物招领, 可不传", required = false) String type) {
+
         List<Item> candidates = itemMapper.selectList(new LambdaQueryWrapper<Item>()
                 .eq(Item::getStatus, "open")
                 .orderByDesc(Item::getCreateTime)
@@ -98,28 +104,66 @@ public class AiTools {
 
         List<Item> hits = new ArrayList<>();
         Map<Long, Integer> scores = new LinkedHashMap<>();
+        Map<Long, Integer> titleHitCounts = new LinkedHashMap<>();
+        Map<Long, Integer> totalHitCounts = new LinkedHashMap<>();
+
         for (Item it : candidates) {
             int score = 0;
+            int titleHits = 0;
+            int totalHits = 0;
             String title = safe(it.getTitle());
             String desc = safe(it.getDescription());
             String loc = safe(it.getLocation());
+
             if (keywords != null) {
                 for (String kw : keywords) {
                     if (kw == null || kw.isBlank()) continue;
                     String k = kw.trim().toLowerCase();
-                    if (title.contains(k)) score += 8;
-                    else if (desc.contains(k)) score += 4;
-                    else if (loc.contains(k)) score += 1;
+                    if (k.length() < 2) continue;
+
+                    if (title.contains(k)) {
+                        score += 10;
+                        titleHits++;
+                        totalHits++;
+                    } else if (desc.contains(k)) {
+                        score += 4;
+                        totalHits++;
+                    } else if (loc.contains(k)) {
+                        score += 1;
+                    }
                 }
             }
-            if (score == 0) continue;
+
+            // 门槛一: 至少命中 2 个特征词
+            if (totalHits < 2) continue;
+            // 门槛二: 标题至少命中 1 个词
+            if (titleHits < 1) continue;
+
             if (type != null && type.equals(it.getType())) score += 3;
             hits.add(it);
             scores.put(it.getItemId(), score);
+            titleHitCounts.put(it.getItemId(), titleHits);
+            totalHitCounts.put(it.getItemId(), totalHits);
         }
-        hits.sort(Comparator.comparingInt((Item it) -> scores.get(it.getItemId())).reversed());
+
+        hits.sort((a, b) -> {
+            int s1 = scores.get(a.getItemId());
+            int s2 = scores.get(b.getItemId());
+            if (s1 != s2) return s2 - s1;
+            return titleHitCounts.get(b.getItemId()) - titleHitCounts.get(a.getItemId());
+        });
+
         List<Item> top = hits.stream().limit(5).toList();
         matchedItems.addAll(top);
+
+        log.info("图片检索 keywords={}, 候选数={}, 返回条数={}", keywords, hits.size(), top.size());
+        for (Item it : top) {
+            log.info("  候选: title={}, score={}, titleHits={}, totalHits={}",
+                    it.getTitle(), scores.get(it.getItemId()),
+                    titleHitCounts.get(it.getItemId()),
+                    totalHitCounts.get(it.getItemId()));
+        }
+
         return toJsonSummary(top);
     }
 
