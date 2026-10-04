@@ -1,6 +1,7 @@
 package com.fast.ai.domain;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -11,12 +12,15 @@ import java.util.List;
 public class AiChatRequest {
     //用户本轮输入的问题
     private String question;
-    //最近几轮的对话上下文(小程序端传过来, 让AI能接得上话茬)
+    //最近几轮的对话上下文
     private List<HistoryMessage> history;
 
-    /**
-     * 历史消息: role=user用户说的 / assistant是AI说的
-     */
+    //=== 图片相关(二选一) ===
+    //方式一: 前端先调 /ai/upload 拿到 url, 走 JSON 传过来
+    private String imageUrl;
+    //方式二: 直接 multipart 上传(兼容 /chat/with-image)
+    private transient MultipartFile imageFile;
+
     @Data
     public static class HistoryMessage {
         private String role;

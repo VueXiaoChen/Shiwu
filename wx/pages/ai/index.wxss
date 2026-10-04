@@ -2,14 +2,16 @@
  * AI 找物助手页样式 — 淡色极简风
  *
  * 依旧遵守：无紫色、无渐变、淡色系、浅阴影、无 emoji
+ * 新增：图片上传按钮、消息内图片、已选图片预览条
  */
 
-.page {
+ .page {
   /* 全局 page 关闭了页面级滚动，本页用 flex 纵向布局：消息区 + 输入栏 */
   display: flex;
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* ============================================
@@ -100,6 +102,22 @@
 
 .msg-bubble-me .msg-text {
   color: #fff;
+}
+
+/* ============================================
+   消息中的图片（用户上传）
+   ============================================ */
+.msg-image-wrap {
+  margin-top: 16rpx;
+  max-width: 320rpx;
+  border-radius: var(--radius-md, 12rpx);
+  overflow: hidden;
+}
+
+.msg-image {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-md, 12rpx);
 }
 
 /* ============================================
@@ -299,6 +317,32 @@
   border-top: 1rpx solid var(--color-border-light);
 }
 
+/* 图片上传按钮 */
+.upload-btn {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  margin-right: 16rpx;
+  border-radius: 50%;
+  background: var(--color-bg-page);
+  border: 1rpx solid var(--color-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-btn:active {
+  background: var(--color-border-light);
+}
+
+.upload-icon {
+  font-size: 44rpx;
+  font-weight: 300;
+  color: var(--color-primary);
+  line-height: 1;
+  margin-top: -4rpx;
+}
+
 .input-field {
   flex: 1;
   height: 72rpx;
@@ -324,4 +368,58 @@
 
 .send-btn-active {
   background: var(--color-primary);
+}
+
+/* ============================================
+   已选图片预览条
+   ============================================ */
+.preview-bar {
+  position: absolute;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border-light);
+  border-radius: var(--radius-lg, 16rpx);
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.preview-item {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.preview-image {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: var(--radius-md, 12rpx);
+  background: var(--color-bg-page);
+}
+
+.preview-remove {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.preview-text {
+  flex: 1;
+  margin-left: 20rpx;
+  font-size: 24rpx;
+  color: var(--color-text-muted);
+  line-height: 1.4;
 }

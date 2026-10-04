@@ -9,29 +9,36 @@ import com.fast.item.mapper.ItemMapper;
 import com.fast.system.domain.LoginUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * AI找物助手 业务实现
- *
- * Agent模式: 把AiTools里的工具注册给DeepSeek, 模型自己决定
- * 什么时候查库、什么时候发布, Spring AI负责"模型→工具→模型"的循环,
- * 我们只订阅最终回复的token流, 通过SSE逐段推给小程序
  */
+@Slf4j
 @Service
 public class AiServiceImpl implements IAiService {
 
@@ -46,62 +53,97 @@ public class AiServiceImpl implements IAiService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    //回复末尾滞留的字符数, 防止[PUBLISH_XXX]标记被流式吐给用户看到
+    //尾部滞留字符数
     private static final int HOLD_BACK = 20;
     private static final String MARK_LOST = "[PUBLISH_LOST]";
     private static final String MARK_FOUND = "[PUBLISH_FOUND]";
 
-    //system提示词: 人设 + 工具使用规范 + 输出约定
+    //图片本地存储目录: 项目运行目录下的 upload/ai, 跨平台安全
+    //生产环境建议换成 OSS
+    private static final String IMAGE_UPLOAD_DIR = "upload/ai/";
+    //对外可访问的图片前缀(需和静态资源映射/Nginx 对齐)
+    private static final String IMAGE_PUBLIC_PREFIX = "/upload/ai/";
+
     private static final String SYSTEM_PROMPT = """
             你是校园失物招领平台的"AI找物助手", 帮同学找回丢失的物品、处理捡到的物品。今天的日期是%s。
 
             工作规范:
             1. 用户描述丢了什么/捡到什么时, 必须先调用searchItems工具在平台里检索, 再根据结果回答, 不允许凭空编造平台信息。
-            2. 检索到相关信息时, 告诉用户找到了几条, 提醒用户点击下方卡片查看详情、仔细核对物品特征后再联系对方。
-            3. 检索不到时: 可以主动提出帮用户发布信息。用户同意由你代发布, 就用publishItem;
+            2. 用户上传图片时, 先用你的视觉能力识别图片里的物品(品类、颜色、品牌、形状、材质等),
+               再调用searchByImage工具, 把识别出的特征词作为keywords传入检索, 不要跳过工具直接回答。
+            3. 检索到相关信息时, 告诉用户找到了几条, 提醒用户点击下方卡片查看详情、仔细核对物品特征后再联系对方。
+            4. 检索不到时: 可以主动提出帮用户发布信息。用户同意由你代发布, 就用publishItem;
                用户没同意或没回应发布意愿, 就在回复的最末尾输出标记: 用户丢了东西输出[PUBLISH_LOST], 捡到东西输出[PUBLISH_FOUND],
                标记只能出现在整条回复的结尾, 前面的正文不要提到这个标记。
-            4. 代发布(publishItem)前必须收集齐: 物品名称和特征、丢失/拾取地点、日期、联系方式。
+            5. 代发布(publishItem)前必须收集齐: 物品名称和特征、丢失/拾取地点、日期、联系方式。
                缺什么就追问什么, 严禁编造。收集齐后先完整复述一遍让用户确认, 用户明确同意后才能调用publishItem。
-            5. 标记完成(finishMyItem)前必须先用getMyItems查出列表, 和用户确认是哪一条再操作。
-            6. 工具返回"用户未登录"时, 引导用户先到小程序底部「我的」页面登录, 再回来继续。
-            7. 只聊失物招领相关话题(找物、发布、平台使用等), 无关话题礼貌拒绝并拉回来。
-            8. 回复口语化、简洁友好, 控制在150字以内, 不使用表情符号和emoji, 不使用markdown格式。
+            6. 标记完成(finishMyItem)前必须先用getMyItems查出列表, 和用户确认是哪一条再操作。
+            7. 工具返回"用户未登录"时, 引导用户先到小程序底部「我的」页面登录, 再回来继续。
+            8. 只聊失物招领相关话题(找物、发布、平台使用等), 无关话题礼貌拒绝并拉回来。
+            9. 回复口语化、简洁友好, 控制在150字以内, 不使用表情符号和emoji, 不使用markdown格式。
             """;
 
     @Override
     public void chatStream(AiChatRequest request, LoginUser loginUser, SseEmitter emitter) {
-        //输入防护: 空问题直接引导, 不浪费一次模型调用
         String question = request.getQuestion() == null ? "" : request.getQuestion().trim();
-        if (question.isEmpty()) {
-            sendDelta(emitter, "你想找什么东西呀? 描述一下物品和丢失地点, 我来帮你在平台里找找。");
+
+        //1. 处理图片: 兼容两种入参(imageFile 直接上传 / imageUrl 已上传后的URL)
+        String imageUrl = request.getImageUrl();
+        if (imageUrl == null && request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+            try {
+                imageUrl = saveImage(request.getImageFile());
+                request.setImageUrl(imageUrl);
+            } catch (Exception e) {
+                log.error("图片保存失败", e);
+                sendDelta(emitter, "图片保存失败了, 请重新上传试试。");
+                sendDone(emitter, List.of(), null);
+                emitter.complete();
+                return;
+            }
+        }
+        boolean hasImage = imageUrl != null && !imageUrl.isBlank();
+
+        //输入防护
+        if (question.isEmpty() && !hasImage) {
+            sendDelta(emitter, "你想找什么东西呀? 描述一下物品和丢失地点, 或者上传一张图片, 我来帮你在平台里找找。");
             sendDone(emitter, List.of(), null);
             emitter.complete();
             return;
         }
-        //超长截断, 防止恶意灌token
         if (question.length() > 200) {
             question = question.substring(0, 200);
         }
 
-        //每次请求new一个工具箱: 隔离本次命中的物品, 同时把登录用户存进去(异步线程里取不到ThreadLocal)
-        AiTools aiTools = new AiTools(itemMapper, categoryMapper, loginUser);
+        log.info("AI对话开始: question={}, hasImage={}, imageUrl={}", question, hasImage, imageUrl);
+
+        //2. 工具箱
+        AiTools aiTools = new AiTools(itemMapper, categoryMapper, loginUser, imageUrl);
 
         Flux<String> stream;
         try {
+            List<Message> messages = new ArrayList<>();
+            messages.add(new SystemMessage(String.format(SYSTEM_PROMPT, LocalDate.now())));
+            messages.addAll(toMessages(request.getHistory()));
+            //本轮用户消息: 图片路径只作为"有图"标记提示模型
+            String userText = hasImage
+                    ? (question.isEmpty()
+                    ? "用户上传了一张物品图片, 请用searchByImage工具按物品特征帮我检索"
+                    : question + "\n(用户还上传了一张物品图片, 请优先用searchByImage工具检索)")
+                    : question;
+            messages.add(new UserMessage(userText));
+
             stream = ChatClient.create(chatModel).prompt()
-                    .system(String.format(SYSTEM_PROMPT, LocalDate.now()))
-                    .messages(toMessages(request.getHistory()))
-                    .user(question)
+                    .messages(messages)
                     .tools(aiTools)
                     .stream()
                     .content();
         } catch (Exception e) {
+            log.error("AI流启动失败", e);
             sendError(emitter);
             return;
         }
 
-        //尾部滞留缓冲: 始终扣住最后HOLD_BACK个字符不发, 结束时再冲刷并剥离PUBLISH标记
+        //3. 尾部滞留 + SSE 推送
         StringBuilder pending = new StringBuilder();
         Disposable disposable = stream.subscribe(
                 token -> {
@@ -112,9 +154,11 @@ public class AiServiceImpl implements IAiService {
                         sendDelta(emitter, sendable);
                     }
                 },
-                error -> sendError(emitter),
+                error -> {
+                    log.error("AI流执行出错", error);
+                    sendError(emitter);
+                },
                 () -> {
-                    //冲刷剩余文本, 剥离引导发布标记转成action
                     String tail = pending.toString();
                     Map<String, String> action = null;
                     if (tail.contains(MARK_LOST)) {
@@ -132,7 +176,6 @@ public class AiServiceImpl implements IAiService {
                     emitter.complete();
                 }
         );
-        //客户端断开/超时就把上游流掐掉, 不白烧token
         emitter.onCompletion(disposable::dispose);
         emitter.onTimeout(() -> {
             disposable.dispose();
@@ -141,15 +184,55 @@ public class AiServiceImpl implements IAiService {
     }
 
     /**
-     * 把小程序传来的历史消息转成模型消息(最多取最近10条)
+     * 保存图片, 返回对外可访问的 URL
+     * 用绝对路径 + Files.copy, 避开 Windows 上 transferTo 对相对路径的解释问题
+     */
+    @Override
+    public String saveImage(MultipartFile file) {
+        try {
+            // 1. 用绝对路径
+            Path dir = Paths.get(IMAGE_UPLOAD_DIR).toAbsolutePath().normalize();
+            if (!Files.exists(dir)) {
+                Files.createDirectories(dir);
+            }
+
+            // 2. 拼文件名(防重名 + 保留扩展名)
+            String ext = "";
+            String original = file.getOriginalFilename();
+            if (original != null && original.contains(".")) {
+                ext = original.substring(original.lastIndexOf("."));
+            }
+            String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
+            Path target = dir.resolve(fileName);
+
+            // 3. 用 Files.copy 写文件
+            try (InputStream in = file.getInputStream()) {
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            String url = IMAGE_PUBLIC_PREFIX + fileName;
+            log.info("图片已保存: 磁盘={}, URL={}", target, url);
+            return url;
+        } catch (IOException e) {
+            log.error("保存图片失败", e);
+            throw new RuntimeException("图片保存失败", e);
+        }
+    }
+
+    /**
+     * 历史消息转模型消息(保证最后一条不是 assistant, 否则模型报错)
      */
     private List<Message> toMessages(List<AiChatRequest.HistoryMessage> history) {
         List<Message> messages = new ArrayList<>();
-        if (history == null || history.isEmpty()) {
-            return messages;
+        if (history == null || history.isEmpty()) return messages;
+
+        int end = history.size();
+        if (end > 0 && "assistant".equals(history.get(end - 1).getRole())) {
+            end--;
         }
-        int from = Math.max(0, history.size() - 10);
-        for (int i = from; i < history.size(); i++) {
+        int from = Math.max(0, end - 10);
+
+        for (int i = from; i < end; i++) {
             AiChatRequest.HistoryMessage h = history.get(i);
             if (h == null || h.getContent() == null || h.getContent().isBlank()) continue;
             if ("assistant".equals(h.getRole())) {
@@ -168,7 +251,6 @@ public class AiServiceImpl implements IAiService {
         return action;
     }
 
-    /** 下发一段回复文本增量 */
     private void sendDelta(SseEmitter emitter, String content) {
         Map<String, Object> event = new LinkedHashMap<>();
         event.put("type", "delta");
@@ -176,7 +258,6 @@ public class AiServiceImpl implements IAiService {
         sendEvent(emitter, event);
     }
 
-    /** 下发结束事件: 携带匹配物品卡片和引导发布action */
     private void sendDone(SseEmitter emitter, List<Item> items, Map<String, String> action) {
         Map<String, Object> event = new LinkedHashMap<>();
         event.put("type", "done");
@@ -185,7 +266,6 @@ public class AiServiceImpl implements IAiService {
         sendEvent(emitter, event);
     }
 
-    /** 下发失败降级事件 */
     private void sendError(SseEmitter emitter) {
         Map<String, Object> event = new LinkedHashMap<>();
         event.put("type", "error");
@@ -198,7 +278,7 @@ public class AiServiceImpl implements IAiService {
         try {
             emitter.send(SseEmitter.event().data(objectMapper.writeValueAsString(event)));
         } catch (Exception e) {
-            //客户端断开时send会报IO异常, 忽略即可
+            // 客户端断开时忽略
         }
     }
 }

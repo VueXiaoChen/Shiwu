@@ -8,6 +8,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 
 /**
@@ -45,6 +46,7 @@ public class ResourcesConfig implements WebMvcConfigurer {
                 //比如 file:./file
                 .addResourceLocations("file:" + fastConfig.getProfile() + "/");
     }
+
 
     /**
      * 跨域配置源

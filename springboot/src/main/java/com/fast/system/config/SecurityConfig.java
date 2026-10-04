@@ -87,8 +87,9 @@ public class SecurityConfig {
                         //物品浏览类接口公开 - 小程序未登录也能刷列表/看详情/搜索
                         .requestMatchers("/item/item/selectItemList", "/item/item/selectItemByItemId/**",
                                 "/item/item/selectItemStats", "/item/item/increaseViews/**").permitAll()
-                        //AI找物助手公开 - 未登录也能闲聊找物, 登录用户带token能用发布类工具
-                        .requestMatchers("/ai/chat").permitAll()
+                        // AI 找物助手：纯文字 + 带图片两个端点都放行
+                        .requestMatchers("/ai/chat", "/ai/chat/with-image").permitAll()
+                        .requestMatchers("/login", "/register").permitAll()
                         //其他所有请求都需要认证
                         .anyRequest().authenticated()
                 )
