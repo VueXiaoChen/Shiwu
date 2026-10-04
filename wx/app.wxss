@@ -1,0 +1,237 @@
+/**
+ * fast-wx 全局样式
+ *
+ * 设计思路：淡色极简风 —— 纯色系、无渐变、
+ * 白色卡片配细边框、充足留白、字体层级清晰
+ */
+
+/* ========== CSS 变量（设计令牌） ========== */
+page {
+  /* 主色系 —— 柔和蓝 */
+  --color-primary: #4a90d9;
+  --color-primary-light: #ecf3fb;
+  --color-primary-dark: #3a7bc8;
+
+  /* 中性色 */
+  --color-bg-page: #f5f5f5;
+  --color-bg-card: #ffffff;
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+  --color-text-placeholder: #bfbfbf;
+  --color-border: #eeeeee;
+  --color-border-light: #f0f0f0;
+
+  /* 语义色 */
+  --color-success: #52c41a;
+  --color-warning: #faad14;
+  --color-danger: #e8746b;
+
+  /* 圆角 */
+  --radius-sm: 6rpx;
+  --radius-md: 12rpx;
+  --radius-lg: 16rpx;
+  --radius-xl: 20rpx;
+  --radius-full: 9999rpx;
+
+  /* 阴影 */
+  --shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+
+  /* 基础设置 */
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Helvetica Neue', Helvetica, 'Segoe UI', Arial, sans-serif;
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-page);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ========== 通用工具类 ========== */
+
+/* Flex 布局 */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+
+/* 文本 */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+/* 间距 */
+.mt-10 { margin-top: 10rpx; }
+.mt-20 { margin-top: 20rpx; }
+.mt-30 { margin-top: 30rpx; }
+.mt-40 { margin-top: 40rpx; }
+.mb-10 { margin-bottom: 10rpx; }
+.mb-20 { margin-bottom: 20rpx; }
+.mb-30 { margin-bottom: 30rpx; }
+.p-20 { padding: 20rpx; }
+.p-24 { padding: 24rpx; }
+.p-30 { padding: 30rpx; }
+.px-20 { padding-left: 20rpx; padding-right: 20rpx; }
+.px-24 { padding-left: 24rpx; padding-right: 24rpx; }
+.px-30 { padding-left: 30rpx; padding-right: 30rpx; }
+.py-20 { padding-top: 20rpx; padding-bottom: 20rpx; }
+
+/* ========== 卡片组件 ========== */
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  margin: 0 24rpx 20rpx;
+  padding: 24rpx;
+  border: 1rpx solid var(--color-border-light);
+}
+
+/* ========== 分隔线 ========== */
+.divider {
+  height: 1rpx;
+  background: var(--color-border);
+  margin: 20rpx 0;
+}
+
+.divider-thin {
+  height: 1rpx;
+  background: var(--color-border-light);
+}
+
+/* ========== 按钮样式 ========== */
+
+/* 主按钮 —— 柔和蓝 */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--color-primary);
+}
+.btn-primary:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+.btn-primary[disabled] {
+  opacity: 0.4;
+}
+
+/* 微信登录按钮 —— 绿色 */
+.btn-wechat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  height: 96rpx;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ffffff;
+  background: #07c160;
+}
+.btn-wechat:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
+/* 幽灵按钮 */
+.btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+}
+.btn-ghost:active {
+  background: #f9f9f9;
+}
+
+/* 退出按钮 */
+.btn-danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--color-danger);
+  background: rgba(232, 116, 107, 0.08);
+}
+.btn-danger:active {
+  background: rgba(232, 116, 107, 0.15);
+}
+
+/* ========== 页面容器 ========== */
+.page-container {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+/* ========== 图标装饰块（替代 emoji） ========== */
+.icon-box {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.icon-box-blue {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.icon-box-green {
+  background: #e6f7ee;
+  color: var(--color-success);
+}
+
+.icon-box-orange {
+  background: #fff7e6;
+  color: var(--color-warning);
+}
+
+.icon-box-red {
+  background: #fef0ef;
+  color: var(--color-danger);
+}
+
+/* ========== 空状态 ========== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--color-text-muted);
+  margin-top: 12rpx;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: var(--color-text-placeholder);
+  margin-top: 8rpx;
+}
+

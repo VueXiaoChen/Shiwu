@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fast.item.mapper.ItemMapper">
+
+    <!-- 物品结果映射: 把查出来的每一列对应到Item对象的属性上 -->
+    <resultMap id="ItemResult" type="Item">
+        <id property="itemId" column="item_id"/>
+        <result property="type" column="type"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="images" column="images"/>
+        <result property="location" column="location"/>
+        <result property="happenTime" column="happen_time"/>
+        <result property="contact" column="contact"/>
+        <result property="urgent" column="urgent"/>
+        <result property="reward" column="reward"/>
+        <result property="status" column="status"/>
+        <result property="views" column="views"/>
+        <result property="userId" column="user_id"/>
+        <result property="createTime" column="create_time"/>
+        <!-- 下面三个是联表查出来的"额外"字段 -->
+        <result property="categoryName" column="category_name"/>
+        <result property="userName" column="user_name"/>
+        <result property="userAvatar" column="user_avatar"/>
+    </resultMap>
+
+    <!-- 查询物品列表（带分页, 顺带把分类名称和发布人名字/头像也查出来） -->
+    <select id="selectItemList" resultMap="ItemResult">
+        select i.item_id, i.type, i.title, i.description, i.category_id, i.images,
+               i.location, i.happen_time, i.contact, i.urgent, i.reward,
+               i.status, i.views, i.user_id, i.create_time,
+               c.category_name,
+               u.user_name,
+               u.avatar as user_avatar
+        from item i
+        left join category c on i.category_id = c.category_id
+        left join user u on i.user_id = u.user_id
+        <where>
+            <if test="item.title != null and item.title != ''">
+                and i.title like concat('%', #{item.title}, '%')
+            </if>
+            <if test="item.type != null and item.type != ''">
+                and i.type = #{item.type}
+            </if>
+            <if test="item.categoryId != null">
+                and i.category_id = #{item.categoryId}
+            </if>
+            <if test="item.status != null and item.status != ''">
+                and i.status = #{item.status}
+            </if>
+            <if test="item.urgent != null">
+                and i.urgent = #{item.urgent}
+            </if>
+            <if test="item.userId != null">
+                and i.user_id = #{item.userId}
+            </if>
+            <!-- 小程序搜索: 一个关键词同时去标题/描述/地点里找 -->
+            <if test="item.keyword != null and item.keyword != ''">
+                and (i.title like concat('%', #{item.keyword}, '%')
+                  or i.description like concat('%', #{item.keyword}, '%')
+                  or i.location like concat('%', #{item.keyword}, '%'))
+            </if>
+        </where>
+        order by i.create_time desc
+    </select>
+
+    <!-- 通过物品ID查询物品信息（详情查看用） -->
+    <select id="selectItemByItemId" resultMap="ItemResult" parameterType="Long">
+        select i.item_id, i.type, i.title, i.description, i.category_id, i.images,
+               i.location, i.happen_time, i.contact, i.urgent, i.reward,
+               i.status, i.views, i.user_id, i.create_time,
+               c.category_name,
+               u.user_name,
+               u.avatar as user_avatar
+        from item i
+        left join category c on i.category_id = c.category_id
+        left join user u on i.user_id = u.user_id
+        where i.item_id = #{itemId}
+    </select>
+
+</mapper>

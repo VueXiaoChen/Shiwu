@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fast.system.mapper.UserMapper">
+
+    <!--
+        resultMap: 结果映射配置
+        作用: 将数据库查询结果映射到Java对象
+        type="User" 映射到User对象
+        id="UserResult": 这个映射的唯一标识, 其他地方可以使用
+    -->
+    <resultMap id="UserResult" type="User">
+        <!--
+           id: 主键字段映射
+           property="userId": Java对象中的属性名
+           column="user_id": 数据库表中的列名
+           作用: 告诉Mybatis, 数据库的user_id列对应Java对象中的userId属性
+        -->
+        <id property="userId" column="user_id"/>
+        <!-- result : 普通字段映射每个<result>标签中的字段 -->
+        <result property="userName" column="user_name"/>
+        <result property="sex" column="sex"/>
+        <result property="avatar" column="avatar"/>
+        <result property="password" column="password"/>
+        <result property="createTime" column="create_time"/>
+        <result property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+    </resultMap>
+
+    <!-- 通过用户ID查询用户信息 -->
+    <select id="selectUserByUserId" resultMap="UserResult" parameterType="Long">
+        select u.user_id, u.user_name, u.sex, u.avatar, u.password, u.create_time,
+               u.role_id,
+               r.role_name
+        from user u
+        left join role r on u.role_id = r.role_id
+        where u.user_id = #{userId}
+    </select>
+
+    <!--查询用户列表（带分页）-->
+    <select id="selectUserList" resultMap="UserResult">
+        select u.user_id, u.user_name, u.sex, u.avatar, u.password, u.create_time,
+               u.role_id,
+               r.role_name
+        from user u
+        left join role r on u.role_id = r.role_id
+        <where>
+            <if test="user.userId != null">
+                and u.user_id = #{user.userId}
+            </if>
+            <if test="user.userName != null and user.userName != ''">
+                and u.user_name like concat('%', #{user.userName} ,'%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

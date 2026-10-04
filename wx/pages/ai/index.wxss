@@ -1,0 +1,327 @@
+/**
+ * AI 找物助手页样式 — 淡色极简风
+ *
+ * 依旧遵守：无紫色、无渐变、淡色系、浅阴影、无 emoji
+ */
+
+.page {
+  /* 全局 page 关闭了页面级滚动，本页用 flex 纵向布局：消息区 + 输入栏 */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   消息列表
+   ============================================ */
+.msg-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 24rpx 24rpx 0;
+  box-sizing: border-box;
+}
+
+/* 顶部提示 */
+.ai-tip {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28rpx;
+}
+
+.ai-tip-text {
+  font-size: 21rpx;
+  color: var(--color-text-placeholder);
+  background: var(--color-border-light);
+  border-radius: var(--radius-full, 999rpx);
+  padding: 8rpx 24rpx;
+}
+
+/* 消息行：AI 在左，我在右 */
+.msg-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 32rpx;
+}
+
+.msg-row-me {
+  flex-direction: row-reverse;
+}
+
+/* AI 头像（纯样式绘制） */
+.ai-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  border: 1rpx solid rgba(74, 144, 217, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-avatar-text {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: 1rpx;
+}
+
+.msg-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  max-width: 76%;
+  margin: 0 18rpx;
+}
+
+.msg-row-me .msg-bubble-wrap {
+  align-items: flex-end;
+}
+
+.msg-bubble {
+  padding: 18rpx 24rpx;
+  background: var(--color-bg-card);
+  border-radius: 4rpx 20rpx 20rpx 20rpx;
+}
+
+.msg-bubble-me {
+  background: var(--color-primary);
+  border-radius: 20rpx 4rpx 20rpx 20rpx;
+}
+
+.msg-text {
+  font-size: 27rpx;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  word-break: break-all;
+  white-space: pre-line;
+}
+
+.msg-bubble-me .msg-text {
+  color: #fff;
+}
+
+/* ============================================
+   匹配物品卡片
+   ============================================ */
+.match-list {
+  margin-top: 16rpx;
+  width: 100%;
+}
+
+.match-card {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border-light);
+  border-radius: var(--radius-lg, 16rpx);
+  box-shadow: var(--shadow-card);
+}
+
+.match-card:active {
+  background: var(--color-bg-page);
+}
+
+.match-thumb {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: var(--radius-md, 12rpx);
+  background: var(--color-bg-page);
+  flex-shrink: 0;
+}
+
+.match-info {
+  flex: 1;
+  min-width: 0;
+  margin: 0 20rpx;
+}
+
+.match-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.match-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 10rpx;
+}
+
+.match-tag {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: var(--radius-sm, 6rpx);
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.match-tag-found {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.match-tag-lost {
+  color: var(--color-warning);
+  background: #fdf6e7;
+}
+
+.match-loc {
+  font-size: 22rpx;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.match-time {
+  display: block;
+  font-size: 20rpx;
+  color: var(--color-text-placeholder);
+  margin-top: 8rpx;
+}
+
+/* 卡片右箭头 */
+.match-arrow {
+  width: 14rpx;
+  height: 14rpx;
+  border-top: 3rpx solid var(--color-text-placeholder);
+  border-right: 3rpx solid var(--color-text-placeholder);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   引导操作按钮（去发布）
+   ============================================ */
+.action-btn {
+  align-self: flex-start;
+  margin-top: 16rpx;
+  padding: 14rpx 36rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border: 1rpx solid rgba(74, 144, 217, 0.3);
+  border-radius: var(--radius-full, 999rpx);
+}
+
+.action-btn:active {
+  opacity: 0.8;
+}
+
+/* ============================================
+   快捷提问
+   ============================================ */
+.quick-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 20rpx;
+}
+
+.quick-label {
+  font-size: 22rpx;
+  color: var(--color-text-placeholder);
+  margin-bottom: 12rpx;
+}
+
+.quick-chip {
+  padding: 12rpx 28rpx;
+  margin-bottom: 14rpx;
+  font-size: 25rpx;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border);
+  border-radius: var(--radius-full, 999rpx);
+}
+
+.quick-chip:active {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-color: rgba(74, 144, 217, 0.3);
+}
+
+/* ============================================
+   AI 思考中动画
+   ============================================ */
+.thinking-bubble {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 24rpx 28rpx;
+}
+
+.think-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--color-primary);
+  opacity: 0.3;
+  animation: think-blink 1.2s infinite;
+}
+
+.think-dot-2 {
+  animation-delay: 0.2s;
+}
+
+.think-dot-3 {
+  animation-delay: 0.4s;
+}
+
+@keyframes think-blink {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-6rpx); }
+}
+
+/* 底部留白，防止最后一条消息贴住输入栏 */
+.msg-scroll-pad {
+  height: 24rpx;
+}
+
+/* ============================================
+   底部输入栏
+   ============================================ */
+.input-bar {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: var(--color-bg-card);
+  border-top: 1rpx solid var(--color-border-light);
+}
+
+.input-field {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 28rpx;
+  font-size: 27rpx;
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-full, 999rpx);
+}
+
+.send-btn {
+  flex-shrink: 0;
+  margin-left: 20rpx;
+  padding: 0 36rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  font-size: 27rpx;
+  color: #fff;
+  background: var(--color-text-placeholder);
+  border-radius: var(--radius-full, 999rpx);
+  transition: background 0.2s;
+}
+
+.send-btn-active {
+  background: var(--color-primary);
+}

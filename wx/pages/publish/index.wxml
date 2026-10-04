@@ -1,0 +1,148 @@
+<!-- 发布页 -->
+<view class="page">
+
+  <!-- ========== 类型切换 ========== -->
+  <view class="type-switch">
+    <view class="type-option {{type === 'lost' ? 'type-option-lost' : ''}}"
+          bindtap="onTypeChange" data-type="lost">
+      <text class="type-name">寻物启事</text>
+      <text class="type-desc">我丢了东西</text>
+    </view>
+    <view class="type-option {{type === 'found' ? 'type-option-found' : ''}}"
+          bindtap="onTypeChange" data-type="found">
+      <text class="type-name">失物招领</text>
+      <text class="type-desc">我捡到东西</text>
+    </view>
+  </view>
+
+  <!-- ========== 图片上传 ========== -->
+  <view class="form-card">
+    <view class="form-label-row">
+      <text class="form-label">物品照片</text>
+      <text class="form-label-tip">{{images.length}}/{{maxImages}}（选填）</text>
+    </view>
+    <view class="upload-grid">
+      <view class="upload-item" wx:for="{{images}}" wx:key="index">
+        <image class="upload-img" src="{{item}}" mode="aspectFill"
+               bindtap="previewImage" data-src="{{item}}" />
+        <view class="upload-remove" catchtap="removeImage" data-index="{{index}}">
+          <view class="remove-x1"></view>
+          <view class="remove-x2"></view>
+        </view>
+      </view>
+      <view wx:if="{{images.length < maxImages}}" class="upload-add" bindtap="chooseImage">
+        <view class="add-plus-h"></view>
+        <view class="add-plus-v"></view>
+        <text class="upload-add-text">添加照片</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 基本信息 ========== -->
+  <view class="form-card">
+    <!-- 标题 -->
+    <view class="form-group">
+      <view class="form-label-row">
+        <text class="form-label"><text class="required">*</text>标题</text>
+        <text class="form-label-tip">{{title.length}}/30</text>
+      </view>
+      <input class="form-input" value="{{title}}" maxlength="30"
+             placeholder="{{type === 'lost' ? '一句话描述丢失的物品' : '一句话描述捡到的物品'}}"
+             placeholder-class="form-ph" bindinput="onTitleInput" />
+    </view>
+
+    <view class="divider-thin"></view>
+
+    <!-- 分类 -->
+    <picker mode="selector" range="{{categories}}" range-key="name"
+            value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="form-row">
+        <text class="form-label"><text class="required">*</text>物品分类</text>
+        <view class="form-row-right">
+          <text class="{{categoryIndex >= 0 ? 'form-value' : 'form-ph'}}">{{categoryIndex >= 0 ? categories[categoryIndex].name : '请选择分类'}}</text>
+          <view class="row-arrow"></view>
+        </view>
+      </view>
+    </picker>
+
+    <view class="divider-thin"></view>
+
+    <!-- 地点 -->
+    <view class="form-group">
+      <view class="form-label-row">
+        <text class="form-label"><text class="required">*</text>{{type === 'lost' ? '丢失地点' : '拾获地点'}}</text>
+      </view>
+      <input class="form-input" value="{{location}}"
+             placeholder="如：图书馆三楼自习区"
+             placeholder-class="form-ph" bindinput="onLocationInput" />
+    </view>
+
+    <view class="divider-thin"></view>
+
+    <!-- 时间 -->
+    <picker mode="date" value="{{happenTime}}" end="{{today}}" bindchange="onDateChange">
+      <view class="form-row">
+        <text class="form-label"><text class="required">*</text>{{type === 'lost' ? '丢失时间' : '拾获时间'}}</text>
+        <view class="form-row-right">
+          <text class="form-value">{{happenTime}}</text>
+          <view class="row-arrow"></view>
+        </view>
+      </view>
+    </picker>
+  </view>
+
+  <!-- ========== 详细描述 ========== -->
+  <view class="form-card">
+    <view class="form-label-row">
+      <text class="form-label"><text class="required">*</text>详细描述</text>
+      <text class="form-label-tip">{{desc.length}}/200</text>
+    </view>
+    <textarea class="form-textarea" value="{{desc}}" maxlength="200"
+              placeholder="{{type === 'lost' ? '详细描述物品特征、丢失经过，方便好心人辨认' : '简单描述物品特征即可，细节留作认领核对，谨防冒领'}}"
+              placeholder-class="form-ph" bindinput="onDescInput" />
+  </view>
+
+  <!-- ========== 联系方式 ========== -->
+  <view class="form-card">
+    <view class="form-label-row">
+      <text class="form-label"><text class="required">*</text>联系方式</text>
+    </view>
+    <input class="form-input" value="{{contact}}"
+           placeholder="如：微信号 / 电话 / QQ"
+           placeholder-class="form-ph" bindinput="onContactInput" />
+  </view>
+
+  <!-- ========== 寻物专属：急寻 + 悬赏 ========== -->
+  <view class="form-card" wx:if="{{type === 'lost'}}">
+    <view class="form-row" bindtap="toggleUrgent">
+      <view class="form-col">
+        <text class="form-label">标记为急寻</text>
+        <text class="form-label-sub">列表中会展示醒目的急寻标签</text>
+      </view>
+      <view class="switch {{urgent ? 'switch-on' : ''}}">
+        <view class="switch-dot"></view>
+      </view>
+    </view>
+
+    <view class="divider-thin"></view>
+
+    <view class="form-group">
+      <view class="form-label-row">
+        <text class="form-label">悬赏酬谢</text>
+        <text class="form-label-tip">选填</text>
+      </view>
+      <input class="form-input" value="{{reward}}"
+             placeholder="如：50元 / 奶茶一杯"
+             placeholder-class="form-ph" bindinput="onRewardInput" />
+    </view>
+  </view>
+
+  <!-- ========== 提交按钮 ========== -->
+  <view class="submit-wrap">
+    <view class="submit-btn {{type === 'lost' ? 'submit-btn-lost' : 'submit-btn-found'}}" bindtap="submit">
+      发布{{type === 'lost' ? '寻物启事' : '失物招领'}}
+    </view>
+    <text class="submit-tip">发布即表示同意平台信息真实性承诺</text>
+  </view>
+
+</view>

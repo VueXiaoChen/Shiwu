@@ -1,0 +1,29 @@
+<!-- 公告详情页 -->
+<view class="page" wx:if="{{notice}}">
+
+  <view class="notice-card">
+    <!-- 标签 + 时间 -->
+    <view class="nc-meta">
+      <view class="nc-tag">公告</view>
+      <text class="nc-time">{{notice.time}}</text>
+    </view>
+
+    <!-- 标题 -->
+    <text class="nc-title">{{notice.title}}</text>
+
+    <view class="nc-divider"></view>
+
+    <!-- 正文（富文本渲染） -->
+    <view class="nc-content">
+      <rich-text class="nc-rich" nodes="{{notice.content}}"></rich-text>
+    </view>
+  </view>
+
+  <!-- 底部落款 -->
+  <view class="notice-footer">
+    <view class="nf-line"></view>
+    <text class="nf-text">校园失物招领平台</text>
+    <view class="nf-line"></view>
+  </view>
+
+</view>

@@ -1,0 +1,185 @@
+<!--
+  个人中心 — 精美重设计
+  三种状态：未登录 / 设置资料 / 已登录
+  JS 逻辑完全保持不变
+-->
+<view class="page-root">
+
+  <!-- ============================================
+       状态 1：未登录
+       ============================================ -->
+  <view wx:if="{{!isLoggedIn}}" class="unlogin">
+
+    <!-- 登录卡片 -->
+    <view class="login-card">
+      <view class="login-card-icon">
+      </view>
+      <view class="login-card-title">欢迎使用</view>
+      <view class="login-card-sub">登录后畅享完整功能体验</view>
+
+      <button
+        class="login-btn"
+        bindtap="handleWxLogin"
+        loading="{{loginLoading}}"
+        disabled="{{loginLoading}}"
+      >
+        {{loginLoading ? '正在登录...' : '微信一键登录'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- ============================================
+       状态 2：已登录，设置头像昵称
+       ============================================ -->
+  <view wx:elif="{{!hasProfile}}" class="setup">
+
+    <!-- 顶部引导 -->
+    <view class="setup-guide">
+      <view class="guide-wave"></view>
+      <view class="guide-content">
+        <view class="guide-icon">
+          <text class="guide-icon-text">:)</text>
+        </view>
+        <view class="guide-title">完善个人资料</view>
+        <view class="guide-desc">设置头像和昵称，开启你的旅程</view>
+      </view>
+    </view>
+
+    <!-- 设置卡片 -->
+    <view class="setup-card">
+      <!-- 头像选择 -->
+      <view class="sc-avatar-area">
+        <button
+          class="sc-avatar-btn"
+          open-type="chooseAvatar"
+          bindchooseavatar="onChooseAvatar"
+        >
+          <image
+            wx:if="{{tempAvatar}}"
+            class="sc-avatar-img"
+            src="{{tempAvatar}}"
+            mode="aspectFill"
+          />
+          <view wx:else class="sc-avatar-empty">
+            <view class="sc-avatar-ring"></view>
+            <text class="sc-avatar-plus">+</text>
+            <view class="sc-avatar-label">选择头像</view>
+          </view>
+        </button>
+      </view>
+
+      <!-- 昵称输入 -->
+      <view class="sc-input-group">
+        <view class="sc-input-header">
+          <text class="sc-input-label">昵称</text>
+          <text class="sc-input-count">{{tempNickName.length || 0}}/20</text>
+        </view>
+        <input
+          class="sc-input"
+          type="nickname"
+          placeholder="请输入你的昵称"
+          maxlength="20"
+          value="{{tempNickName}}"
+          focus="{{nicknameFocus}}"
+          confirm-type="done"
+          bindinput="onNickInput"
+          bindblur="onNickBlur"
+        />
+      </view>
+
+      <!-- 操作按钮 -->
+      <button
+        class="sc-save-btn"
+        bindtap="saveProfile"
+        loading="{{saving}}"
+        disabled="{{saving || !tempNickName}}"
+      >
+        {{saving ? '保存中...' : '完成设置'}}
+      </button>
+
+    </view>
+  </view>
+
+  <!-- ============================================
+       状态 3：已登录 + 已设置个人资料
+       ============================================ -->
+  <view wx:else class="profile">
+
+    <!-- 头部：左头像 + 右昵称，横向布局 -->
+    <view class="pf-header">
+      <image
+        class="pf-avatar-img"
+        src="{{userInfo.avatarUrl}}"
+        mode="aspectFill"
+      />
+      <view class="pf-info">
+        <view class="pf-name">{{userInfo.nickName || '微信用户'}}</view>
+      </view>
+    </view>
+
+
+
+    <!-- 我的服务菜单 -->
+    <view class="pf-menu">
+      <view class="pf-menu-title">我的服务</view>
+      <view class="pf-menu-list">
+        <!-- 我的发布 -->
+        <view class="pf-menu-item" bindtap="goMyPublish">
+          <view class="pf-mi-left">
+            <view class="pf-mi-icon pf-mi-icon-publish">P</view>
+            <text class="pf-mi-label">我的发布</text>
+          </view>
+          <view class="pf-mi-right">
+            <text class="pf-mi-arrow">›</text>
+          </view>
+        </view>
+        <!-- 我的消息 -->
+        <view class="pf-menu-item pf-menu-item-last" bindtap="goMessage">
+          <view class="pf-mi-left">
+            <view class="pf-mi-icon pf-mi-icon-msg">M</view>
+            <text class="pf-mi-label">我的消息</text>
+          </view>
+          <view class="pf-mi-right">
+            <text class="pf-mi-arrow">›</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 个人信息菜单 -->
+    <view class="pf-menu">
+      <view class="pf-menu-title">个人信息</view>
+      <view class="pf-menu-list">
+        <!-- 用户名 -->
+        <view wx:if="{{userName}}" class="pf-menu-item">
+          <view class="pf-mi-left">
+            <view class="pf-mi-icon pf-mi-icon-user">U</view>
+            <text class="pf-mi-label">用户名</text>
+          </view>
+          <text class="pf-mi-value">{{userName}}</text>
+        </view>
+        <!-- 性别（点击可修改） -->
+        <view class="pf-menu-item pf-menu-item-last" bindtap="onChangeGender">
+          <view class="pf-mi-left">
+            <view class="pf-mi-icon pf-mi-icon-gender">G</view>
+            <text class="pf-mi-label">性别</text>
+          </view>
+          <view class="pf-mi-right">
+            <text class="pf-mi-value">{{genderText || '未设置'}}</text>
+            <text class="pf-mi-arrow">›</text>
+          </view>
+        </view>
+
+      </view>
+    </view>
+
+    <!-- 操作区 -->
+    <view class="pf-actions">
+      <button class="pf-act-btn pf-act-logout" bindtap="handleLogout">
+        <text>退出登录</text>
+      </button>
+    </view>
+
+  </view>
+
+</view>

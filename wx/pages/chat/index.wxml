@@ -1,0 +1,62 @@
+<!-- 对话页 — 与失主/拾主留言沟通 -->
+<view class="page" wx:if="{{item}}">
+
+  <!-- ========== 顶部关联物品卡 ========== -->
+  <view class="item-bar" bindtap="goDetail">
+    <image class="item-thumb" src="{{item.images[0]}}" mode="aspectFill" />
+    <view class="item-info">
+      <text class="item-title">{{item.title}}</text>
+      <view class="item-meta">
+        <view class="item-type-tag {{item.type === 'found' ? 'tag-found' : 'tag-lost'}}">
+          {{item.type === 'found' ? '招领' : '寻物'}}
+        </view>
+        <text class="item-loc">{{item.location}}</text>
+      </view>
+    </view>
+    <view class="item-contact-btn" catchtap="showContact">联系方式</view>
+  </view>
+
+  <!-- ========== 消息气泡列表 ========== -->
+  <scroll-view class="msg-scroll" scroll-y scroll-into-view="{{scrollIntoId}}"
+               scroll-with-animation enhanced show-scrollbar="{{false}}">
+
+    <!-- 沟通提示 -->
+    <view class="chat-tip">
+      <text class="chat-tip-text">请文明沟通，认领时注意核对物品特征，谨防冒领</text>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}"
+          class="msg-row {{item.from === 'me' ? 'msg-row-me' : ''}}">
+      <image class="msg-avatar"
+             src="{{item.from === 'me' ? myAvatar : peer.avatar}}"
+             mode="aspectFill" />
+      <view class="msg-bubble-wrap">
+        <view class="msg-bubble {{item.from === 'me' ? 'msg-bubble-me' : ''}}">
+          <text class="msg-text">{{item.text}}</text>
+        </view>
+        <text class="msg-time">{{item.time}}</text>
+      </view>
+    </view>
+
+    <!-- 空会话引导 -->
+    <view wx:if="{{messages.length === 0}}" class="chat-empty">
+      <text class="chat-empty-text">还没有对话</text>
+      <text class="chat-empty-hint">{{item.type === 'found' ? '描述一下物品特征，向对方发起认领吧' : '如果你有线索，快告诉失主吧'}}</text>
+    </view>
+
+    <!-- 底部留白，避免被输入栏遮挡 -->
+    <view class="msg-scroll-pad"></view>
+  </scroll-view>
+
+  <!-- ========== 底部输入栏 ========== -->
+  <view class="input-bar">
+    <input class="input-field"
+           value="{{inputText}}"
+           placeholder="输入留言内容..."
+           confirm-type="send"
+           bindinput="onInput"
+           bindconfirm="send" />
+    <view class="send-btn {{inputText ? 'send-btn-active' : ''}}" bindtap="send">发送</view>
+  </view>
+
+</view>

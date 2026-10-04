@@ -1,0 +1,62 @@
+<!-- 消息中心 — 留言互动 -->
+<view class="page">
+
+  <!-- ========== 未登录状态 ========== -->
+  <view wx:if="{{!isLoggedIn}}" class="unlogin">
+    <view class="unlogin-icon">
+      <view class="unlogin-bubble"></view>
+      <view class="unlogin-dot-row">
+        <view class="unlogin-dot"></view>
+        <view class="unlogin-dot"></view>
+        <view class="unlogin-dot"></view>
+      </view>
+    </view>
+    <text class="unlogin-title">登录后查看消息</text>
+    <text class="unlogin-sub">留言回复、认领进展都会在这里提醒你</text>
+    <button class="unlogin-btn" bindtap="goLogin">去登录</button>
+  </view>
+
+  <!-- ========== 已登录：消息列表 ========== -->
+  <block wx:else>
+
+    <!-- 留言互动列表 -->
+    <view>
+      <view wx:if="{{interactList.length > 0}}" class="msg-list">
+        <view class="msg-card" wx:for="{{interactList}}" wx:key="id"
+              bindtap="onMessageTap" data-id="{{item.id}}">
+          <view class="msg-avatar-wrap">
+            <image class="msg-avatar" src="{{item.user.avatar}}" mode="aspectFill" />
+            <view wx:if="{{item.unread}}" class="msg-unread-dot"></view>
+          </view>
+          <view class="msg-body">
+            <view class="msg-head">
+              <text class="msg-name">{{item.user.name}}</text>
+              <text class="msg-time">{{item.time}}</text>
+            </view>
+            <text class="msg-content">{{item.content}}</text>
+            <view class="msg-item-ref">
+              <view class="msg-item-ref-bar"></view>
+              <text class="msg-item-ref-text">{{item.itemTitle}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-state">
+        <view class="empty-icon-ring">
+          <view class="empty-icon-line"></view>
+        </view>
+        <text class="empty-text">还没有留言互动</text>
+        <text class="empty-hint">有人留言认领时会在这里提醒你</text>
+      </view>
+    </view>
+
+    <!-- 列表底部提示（空列表就不用提示到底了） -->
+    <view wx:if="{{interactList.length > 0}}" class="list-footer">
+      <view class="list-footer-line"></view>
+      <text class="list-footer-text">已经到底啦</text>
+      <view class="list-footer-line"></view>
+    </view>
+
+  </block>
+
+</view>

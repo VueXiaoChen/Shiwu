@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fast.message.mapper.MessageMapper">
+
+    <!-- 消息结果映射: 把查出来的每一列对应到Message对象的属性上 -->
+    <resultMap id="MessageResult" type="Message">
+        <id property="messageId" column="message_id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="fromUserId" column="from_user_id"/>
+        <result property="toUserId" column="to_user_id"/>
+        <result property="content" column="content"/>
+        <result property="isRead" column="is_read"/>
+        <result property="createTime" column="create_time"/>
+        <!-- 下面五个是联表查出来的"额外"字段 -->
+        <result property="fromUserName" column="from_user_name"/>
+        <result property="fromUserAvatar" column="from_user_avatar"/>
+        <result property="toUserName" column="to_user_name"/>
+        <result property="toUserAvatar" column="to_user_avatar"/>
+        <result property="itemTitle" column="item_title"/>
+        <!-- 会话未读数(只有会话列表查询才有这一列, 其他查询查不到就是null) -->
+        <result property="unreadCount" column="unread_count"/>
+        <!-- 会话留言总数(只有管理端会话列表查询才有这一列) -->
+        <result property="messageCount" column="message_count"/>
+    </resultMap>
+
+    <!-- 查询消息列表（带分页, 顺带把收发双方的名字/头像和物品标题也查出来） -->
+    <select id="selectMessageList" resultMap="MessageResult">
+        select m.message_id, m.item_id, m.from_user_id, m.to_user_id,
+               m.content, m.is_read, m.create_time,
+               fu.user_name as from_user_name,
+               fu.avatar as from_user_avatar,
+               tu.user_name as to_user_name,
+               tu.avatar as to_user_avatar,
+               i.title as item_title
+        from message m
+        left join user fu on m.from_user_id = fu.user_id
+        left join user tu on m.to_user_id = tu.user_id
+        left join item i on m.item_id = i.item_id
+        <where>
+            <if test="message.fromUserName != null and message.fromUserName != ''">
+                and fu.user_name like concat('%', #{message.fromUserName}, '%')
+            </if>
+            <if test="message.toUserName != null and message.toUserName != ''">
+                and tu.user_name like concat('%', #{message.toUserName}, '%')
+            </if>
+            <if test="message.content != null and message.content != ''">
+                and m.content like concat('%', #{message.content}, '%')
+            </if>
+            <if test="message.isRead != null">
+                and m.is_read = #{message.isRead}
+            </if>
+            <if test="message.itemId != null">
+                and m.item_id = #{message.itemId}
+            </if>
+        </where>
+        order by m.create_time desc
+    </select>
+
+    <!-- 通过消息ID查询消息信息（详情查看用） -->
+    <select id="selectMessageByMessageId" resultMap="MessageResult" parameterType="Long">
+        select m.message_id, m.item_id, m.from_user_id, m.to_user_id,
+               m.content, m.is_read, m.create_time,
+               fu.user_name as from_user_name,
+               fu.avatar as from_user_avatar,
+               tu.user_name as to_user_name,
+               tu.avatar as to_user_avatar,
+               i.title as item_title
+        from message m
+        left join user fu on m.from_user_id = fu.user_id
+        left join user tu on m.to_user_id = tu.user_id
+        left join item i on m.item_id = i.item_id
+        where m.message_id = #{messageId}
+    </select>
+
+    <!-- 全站会话列表（管理端对话记录用, 带分页）
+         思路: 和"我的会话列表"类似, 但不限定当前用户, 按"物品+用户对"分组,
+         用户对用 least/greatest 归一化, 保证甲发乙和乙发甲算同一个会话,
+         每组挑最新一条留言展示, 顺带统计留言总数和未读数 -->
+    <select id="selectConversationList" resultMap="MessageResult">
+        select m.message_id, m.item_id, m.from_user_id, m.to_user_id,
+               m.content, m.is_read, m.create_time,
+               fu.user_name as from_user_name,
+               fu.avatar as from_user_avatar,
+               tu.user_name as to_user_name,
+               tu.avatar as to_user_avatar,
+               i.title as item_title,
+               latest.msg_count as message_count,
+               (select count(*) from message x
+                where x.item_id = m.item_id
+                  and least(x.from_user_id, x.to_user_id) = least(m.from_user_id, m.to_user_id)
+                  and greatest(x.from_user_id, x.to_user_id) = greatest(m.from_user_id, m.to_user_id)
+                  and x.is_read = 0) as unread_count
+        from message m
+        join (
+            select max(message_id) as max_id, count(*) as msg_count
+            from message
+            group by item_id, least(from_user_id, to_user_id), greatest(from_user_id, to_user_id)
+        ) latest on m.message_id = latest.max_id
+        left join user fu on m.from_user_id = fu.user_id
+        left join user tu on m.to_user_id = tu.user_id
+        left join item i on m.item_id = i.item_id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (fu.user_name like concat('%', #{keyword}, '%')
+                  or tu.user_name like concat('%', #{keyword}, '%')
+                  or i.title like concat('%', #{keyword}, '%')
+                  or m.content like concat('%', #{keyword}, '%'))
+            </if>
+        </where>
+        order by m.create_time desc
+    </select>
+
+    <!-- 我的会话列表（小程序消息中心用）
+         思路: 先按"物品+对方"分组, 每组挑出最大的message_id(也就是最新那条),
+         再拿这批最新消息去联表补齐名字/头像/物品标题, 顺带子查询数一下未读 -->
+    <select id="selectMyConversationList" resultMap="MessageResult">
+        select m.message_id, m.item_id, m.from_user_id, m.to_user_id,
+               m.content, m.is_read, m.create_time,
+               fu.user_name as from_user_name,
+               fu.avatar as from_user_avatar,
+               tu.user_name as to_user_name,
+               tu.avatar as to_user_avatar,
+               i.title as item_title,
+               (select count(*) from message x
+                where x.item_id = m.item_id
+                  and x.to_user_id = #{userId}
+                  and x.from_user_id = if(m.from_user_id = #{userId}, m.to_user_id, m.from_user_id)
+                  and x.is_read = 0) as unread_count
+        from message m
+        join (
+            select max(message_id) as max_id
+            from message
+            where from_user_id = #{userId} or to_user_id = #{userId}
+            group by item_id, if(from_user_id = #{userId}, to_user_id, from_user_id)
+        ) latest on m.message_id = latest.max_id
+        left join user fu on m.from_user_id = fu.user_id
+        left join user tu on m.to_user_id = tu.user_id
+        left join item i on m.item_id = i.item_id
+        order by m.create_time desc
+    </select>
+
+    <!-- 我和对方围绕某件物品的完整对话（小程序对话页用, 按时间正序方便直接渲染气泡） -->
+    <select id="selectConversation" resultMap="MessageResult">
+        select m.message_id, m.item_id, m.from_user_id, m.to_user_id,
+               m.content, m.is_read, m.create_time,
+               fu.user_name as from_user_name,
+               fu.avatar as from_user_avatar,
+               tu.user_name as to_user_name,
+               tu.avatar as to_user_avatar
+        from message m
+        left join user fu on m.from_user_id = fu.user_id
+        left join user tu on m.to_user_id = tu.user_id
+        where m.item_id = #{itemId}
+          and ((m.from_user_id = #{userId} and m.to_user_id = #{peerUserId})
+            or (m.from_user_id = #{peerUserId} and m.to_user_id = #{userId}))
+        order by m.create_time asc, m.message_id asc
+    </select>
+
+</mapper>

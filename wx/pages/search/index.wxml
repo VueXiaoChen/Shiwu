@@ -1,0 +1,90 @@
+<!-- 搜索页 -->
+<view class="page">
+
+  <!-- ========== 顶部搜索栏 ========== -->
+  <view class="search-header">
+    <view class="search-input-wrap">
+      <view class="search-icon"></view>
+      <input class="search-input"
+             value="{{keyword}}"
+             placeholder="搜索物品名称、地点、分类"
+             placeholder-class="search-input-ph"
+             confirm-type="search"
+             focus
+             bindinput="onInput"
+             bindconfirm="onConfirm" />
+      <view wx:if="{{keyword}}" class="clear-btn" catchtap="clearKeyword">
+        <view class="clear-x1"></view>
+        <view class="clear-x2"></view>
+      </view>
+    </view>
+    <text class="cancel-btn" bindtap="goBack">取消</text>
+  </view>
+
+  <!-- ========== 初始态：历史 + 热门 ========== -->
+  <block wx:if="{{!searched}}">
+    <!-- 搜索历史 -->
+    <view class="section" wx:if="{{history.length > 0}}">
+      <view class="section-head">
+        <text class="section-title">搜索历史</text>
+        <text class="section-action" bindtap="clearHistory">清空</text>
+      </view>
+      <view class="kw-wrap">
+        <view class="kw-chip" wx:for="{{history}}" wx:key="index"
+              bindtap="onKeywordTap" data-kw="{{item}}">{{item}}</view>
+      </view>
+    </view>
+
+    <!-- 热门搜索 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="section-title">热门搜索</text>
+      </view>
+      <view class="kw-wrap">
+        <view class="kw-chip kw-chip-hot {{index < 3 ? 'kw-chip-top' : ''}}"
+              wx:for="{{hotKeywords}}" wx:key="index"
+              bindtap="onKeywordTap" data-kw="{{item}}">
+          <text wx:if="{{index < 3}}" class="kw-rank">{{index + 1}}</text>
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 搜索结果 ========== -->
+  <block wx:else>
+    <view class="result-head">
+      <text class="result-count">共找到 {{resultList.length}} 条相关信息</text>
+    </view>
+
+    <view class="result-list">
+      <view class="result-card" wx:for="{{resultList}}" wx:key="id"
+            bindtap="goDetail" data-id="{{item.id}}">
+        <image class="result-thumb" src="{{item.images[0]}}" mode="aspectFill" lazy-load />
+        <view class="result-info">
+          <view class="result-title-row">
+            <view class="result-type-tag {{item.type === 'found' ? 'tag-found' : 'tag-lost'}}">
+              {{item.type === 'found' ? '招领' : '寻物'}}
+            </view>
+            <text class="result-title">{{item.title}}</text>
+          </view>
+          <text class="result-desc">{{item.desc}}</text>
+          <view class="result-bottom">
+            <text class="result-location">{{item.location}}</text>
+            <text class="result-time">{{item.publishTime}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无结果 -->
+      <view wx:if="{{resultList.length === 0}}" class="empty-state">
+        <view class="empty-icon-ring">
+          <view class="empty-icon-line"></view>
+        </view>
+        <text class="empty-text">没有找到相关信息</text>
+        <text class="empty-hint">换个关键词试试吧</text>
+      </view>
+    </view>
+  </block>
+
+</view>

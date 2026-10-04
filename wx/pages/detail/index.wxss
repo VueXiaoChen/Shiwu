@@ -1,0 +1,379 @@
+/**
+ * 物品详情页样式 — 淡色极简风
+ */
+
+.page {
+  /* 全局 page 关闭了页面级滚动（overflow: hidden），由本容器接管滚动 */
+  height: 100vh;
+  overflow-y: auto;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* ============================================
+   图片轮播
+   ============================================ */
+.gallery {
+  position: relative;
+  background: var(--color-bg-card);
+}
+
+.gallery-swiper {
+  width: 100%;
+  height: 520rpx;
+}
+
+.gallery-img {
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-count {
+  position: absolute;
+  right: 24rpx;
+  bottom: 24rpx;
+  padding: 6rpx 20rpx;
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font-size: 22rpx;
+  border-radius: var(--radius-full);
+}
+
+.gallery-done {
+  position: absolute;
+  left: 24rpx;
+  top: 24rpx;
+  padding: 8rpx 24rpx;
+  background: rgba(82, 196, 26, 0.9);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+/* ============================================
+   主信息卡
+   ============================================ */
+.info-card {
+  margin: -24rpx 24rpx 0;
+  position: relative;
+  z-index: 2;
+  padding: 28rpx;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border-light);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.info-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.type-tag {
+  padding: 4rpx 18rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+.tag-found {
+  background: #e6f7ee;
+  color: #389e0d;
+}
+
+.tag-lost {
+  background: #fff2e8;
+  color: #d4661a;
+}
+
+.urgent-tag {
+  padding: 4rpx 18rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  background: #fef0ef;
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+}
+
+.info-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.45;
+}
+
+.info-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.info-chip {
+  padding: 4rpx 18rpx;
+  font-size: 22rpx;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-radius: var(--radius-full);
+}
+
+.info-chip-reward {
+  color: #d48806;
+  background: #fff7e6;
+}
+
+.info-chip-plain {
+  color: var(--color-text-muted);
+  background: var(--color-bg-page);
+}
+
+.info-divider {
+  margin: 24rpx 0;
+}
+
+/* 键值信息行 */
+.kv-row {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.kv-label {
+  flex-shrink: 0;
+  width: 160rpx;
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+}
+
+.kv-value {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* ============================================
+   卡片通用头部（竖条 + 标题）
+   ============================================ */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.card-head-bar {
+  width: 8rpx;
+  height: 30rpx;
+  border-radius: 4rpx;
+  background: var(--color-primary);
+}
+
+.card-head-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+/* ============================================
+   详细描述卡
+   ============================================ */
+.desc-card {
+  margin: 20rpx 24rpx 0;
+  padding: 28rpx;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.desc-text {
+  display: block;
+  font-size: 27rpx;
+  color: var(--color-text-secondary);
+  line-height: 1.75;
+}
+
+/* 认领提示框 */
+.tip-box {
+  margin-top: 24rpx;
+  padding: 18rpx 24rpx;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-md);
+}
+
+.tip-text {
+  font-size: 23rpx;
+  color: var(--color-primary-dark);
+  line-height: 1.6;
+}
+
+/* ============================================
+   发布人卡片
+   ============================================ */
+.publisher-card {
+  margin: 20rpx 24rpx 0;
+  padding: 24rpx 28rpx;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+}
+
+.pub-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1rpx solid var(--color-border-light);
+}
+
+.pub-info {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.pub-name {
+  font-size: 29rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.pub-campus {
+  margin-top: 4rpx;
+  font-size: 23rpx;
+  color: var(--color-text-muted);
+}
+
+.pub-role {
+  flex-shrink: 0;
+  padding: 6rpx 22rpx;
+  font-size: 23rpx;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-radius: var(--radius-full);
+}
+
+/* ============================================
+   相关推荐
+   ============================================ */
+.related-card {
+  margin: 20rpx 24rpx 0;
+  padding: 28rpx;
+  background: var(--color-bg-card);
+  border: 1rpx solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.related-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--color-border-light);
+}
+
+.related-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.related-thumb {
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.related-info {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+}
+
+.related-title {
+  display: block;
+  font-size: 27rpx;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.related-meta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 10rpx;
+}
+
+.related-type-tag {
+  padding: 0 12rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+.related-time {
+  font-size: 22rpx;
+  color: var(--color-text-placeholder);
+}
+
+/* CSS 手绘右箭头 */
+.related-arrow {
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 3rpx solid var(--color-text-placeholder);
+  border-right: 3rpx solid var(--color-text-placeholder);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+/* ============================================
+   底部操作栏
+   ============================================ */
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  padding: 16rpx 32rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: var(--color-bg-card);
+  border-top: 1rpx solid var(--color-border-light);
+}
+
+/* 主操作按钮 */
+.act-main {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.act-main:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
+.act-main-disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}

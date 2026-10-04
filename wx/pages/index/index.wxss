@@ -1,0 +1,850 @@
+/**
+ * 首页样式 — 重设计版
+ *
+ * 设计语言：沉浸式纯色品牌头 + 卡片叠压层次 + 双列瀑布流
+ * 依旧遵守：无紫色、无渐变、淡色系、浅阴影、无 emoji
+ */
+
+.page {
+  /* 全局 page 关闭了页面级滚动（overflow: hidden），由本容器接管滚动 */
+  height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 160rpx;
+  box-sizing: border-box;
+  background: #f6f7f9;
+}
+
+/* ============================================
+   沉浸式品牌头（纯色蓝，无渐变）
+   ============================================ */
+.hero {
+  position: relative;
+  background: var(--color-primary);
+  padding: 0 32rpx 96rpx;
+  overflow: hidden;
+}
+
+/* 装饰圆环（半透明白，制造层次不用渐变） */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -120rpx;
+  right: -100rpx;
+  width: 360rpx;
+  height: 360rpx;
+  border-radius: 50%;
+  border: 60rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 40rpx;
+  left: -80rpx;
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* 导航标题行（自定义导航栏） */
+.hero-nav {
+  position: relative;
+  z-index: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+}
+
+.hero-brand {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 2rpx;
+}
+
+/* 标语行 */
+.hero-slogan-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 8rpx;
+}
+
+.hero-slogan {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 1rpx;
+}
+
+.hero-slogan-line {
+  width: 48rpx;
+  height: 3rpx;
+  border-radius: 2rpx;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* 搜索栏 + AI 找物入口行 */
+.hero-search-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 32rpx;
+}
+
+/* 搜索栏 */
+.hero-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 84rpx;
+  padding: 0 10rpx 0 28rpx;
+  background: #ffffff;
+  border-radius: var(--radius-full);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+
+.search-icon {
+  width: 26rpx;
+  height: 26rpx;
+  border: 4rpx solid var(--color-text-placeholder);
+  border-radius: 50%;
+  position: relative;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.search-icon::after {
+  content: '';
+  position: absolute;
+  right: -10rpx;
+  bottom: -6rpx;
+  width: 12rpx;
+  height: 4rpx;
+  background: var(--color-text-placeholder);
+  border-radius: 2rpx;
+  transform: rotate(45deg);
+}
+
+.hero-search-ph {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--color-text-placeholder);
+}
+
+.hero-search-btn {
+  flex-shrink: 0;
+  height: 64rpx;
+  padding: 0 32rpx;
+  display: flex;
+  align-items: center;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+/* AI 找物入口按钮 */
+.hero-ai-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  height: 84rpx;
+  padding: 0 26rpx;
+  background: #ffffff;
+  border-radius: var(--radius-full);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+
+.hero-ai-btn:active {
+  opacity: 0.85;
+}
+
+/* 星形火花（两个交叉菱形绘制，无图片依赖） */
+.hero-ai-spark {
+  width: 14rpx;
+  height: 14rpx;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+  position: relative;
+}
+
+.hero-ai-spark::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+  opacity: 0.55;
+}
+
+.hero-ai-text {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* 统计行 */
+.hero-stats {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 32rpx;
+  padding: 0 24rpx;
+}
+
+.hs-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hs-num {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.hs-label {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.hs-gap {
+  width: 1rpx;
+  height: 44rpx;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================
+   双发布入口卡（负 margin 叠压在品牌头上）
+   ============================================ */
+.entry-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 20rpx;
+  margin: -56rpx 24rpx 0;
+}
+
+.entry-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 26rpx 22rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s;
+}
+
+.entry-card:active {
+  transform: scale(0.97);
+}
+
+/* 寻物 — 暖橙纸感 */
+.entry-lost {
+  background: #fff6ee;
+  border: 1rpx solid #f5e3d2;
+}
+
+/* 招领 — 淡绿纸感 */
+.entry-found {
+  background: #eefaf2;
+  border: 1rpx solid #d8eede;
+}
+
+/* 图标块 */
+.entry-icon {
+  position: relative;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 22rpx;
+  flex-shrink: 0;
+}
+
+.entry-icon-lost {
+  background: #ffe9d6;
+}
+
+.entry-icon-found {
+  background: #d9f2e2;
+}
+
+/* 寻物图标：CSS 放大镜 */
+.ei-search-ring {
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  width: 26rpx;
+  height: 26rpx;
+  border: 5rpx solid #d4661a;
+  border-radius: 50%;
+}
+
+.ei-search-handle {
+  position: absolute;
+  right: 18rpx;
+  bottom: 16rpx;
+  width: 16rpx;
+  height: 5rpx;
+  border-radius: 3rpx;
+  background: #d4661a;
+  transform: rotate(45deg);
+}
+
+/* 招领图标：CSS 托举（横线 + 圆点） */
+.ei-hand-line {
+  position: absolute;
+  left: 18rpx;
+  bottom: 22rpx;
+  width: 40rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  background: #389e0d;
+}
+
+.ei-hand-dot {
+  position: absolute;
+  top: 18rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  border: 5rpx solid #389e0d;
+  box-sizing: border-box;
+}
+
+.entry-texts {
+  flex: 1;
+  min-width: 0;
+  margin-left: 18rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.entry-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.entry-sub {
+  margin-top: 4rpx;
+  font-size: 21rpx;
+  color: var(--color-text-muted);
+}
+
+/* CSS 手绘右箭头 */
+.entry-arrow {
+  width: 12rpx;
+  height: 12rpx;
+  border-top: 3rpx solid var(--color-text-placeholder);
+  border-right: 3rpx solid var(--color-text-placeholder);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   公告条（极简线条式）
+   ============================================ */
+.notice-bar {
+  display: flex;
+  align-items: center;
+  margin: 24rpx 32rpx 0;
+  height: 52rpx;
+}
+
+.notice-dot {
+  flex-shrink: 0;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--color-primary);
+  margin-right: 14rpx;
+}
+
+.notice-swiper {
+  flex: 1;
+  height: 52rpx;
+}
+
+/* 单条公告（可点击进详情） */
+.notice-item {
+  display: flex;
+  align-items: center;
+  height: 52rpx;
+}
+
+.notice-item-hover .notice-text {
+  color: var(--color-primary);
+}
+
+.notice-text {
+  flex: 1;
+  line-height: 52rpx;
+  font-size: 23rpx;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 右侧小箭头，提示可点击 */
+.notice-arrow {
+  flex-shrink: 0;
+  width: 12rpx;
+  height: 12rpx;
+  margin-left: 12rpx;
+  border-top: 2rpx solid var(--color-text-placeholder);
+  border-right: 2rpx solid var(--color-text-placeholder);
+  transform: rotate(45deg);
+}
+
+/* ============================================
+   分类横滑条
+   ============================================ */
+.cate-scroll {
+  margin-top: 12rpx;
+  white-space: nowrap;
+}
+
+.cate-row {
+  display: inline-flex;
+  padding: 8rpx 24rpx;
+  gap: 28rpx;
+}
+
+.cate-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.15s;
+}
+
+.cate-item:active {
+  transform: scale(0.94);
+}
+
+.cate-tile {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3rpx solid transparent;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+/* 分类底色 + 主色按序号循环取用（color 供选中态描边 currentColor 使用） */
+.cate-tile-c0 { background: #ecf3fb; color: #4a90d9; }
+.cate-tile-c1 { background: #fff7e6; color: #d48806; }
+.cate-tile-c2 { background: #e6f7ee; color: #389e0d; }
+.cate-tile-c3 { background: #e6fffb; color: #08979c; }
+.cate-tile-c4 { background: #fef0ef; color: #cf6a62; }
+.cate-tile-c5 { background: #f0f5ff; color: #2f54eb; }
+.cate-tile-c6 { background: #fff2e8; color: #d4661a; }
+.cate-tile-c7 { background: #f5f5f5; color: #8c8c8c; }
+
+/* 后端上传的分类图标 */
+.cate-img {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+/* 分类兜底图标（后端未配置图标时显示） */
+.cate-icon {
+  width: 44rpx;
+  height: 44rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+/* 兜底 — 收纳盒 */
+.cate-icon-default {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/%3E%3Cpath d='M3 8l9 5 9-5'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E");
+}
+
+.cate-item-active .cate-tile {
+  border-color: currentColor;
+}
+
+.cate-name {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: var(--color-text-muted);
+}
+
+.cate-item-active .cate-name {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* ============================================
+   Tab 筛选栏（下划线式）
+   ============================================ */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx 12rpx;
+}
+
+.filter-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 44rpx;
+}
+
+.ftab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 29rpx;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+  transition: all 0.2s;
+}
+
+.ftab-active {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.ftab-line {
+  width: 0;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: var(--color-primary);
+  margin-top: 6rpx;
+  transition: width 0.2s;
+}
+
+.ftab-active .ftab-line {
+  width: 36rpx;
+}
+
+/* 急寻筛选 chip */
+.urgent-chip {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 26rpx;
+  font-size: 24rpx;
+  color: var(--color-danger);
+  background: #ffffff;
+  border: 1rpx solid rgba(232, 116, 107, 0.35);
+  border-radius: var(--radius-full);
+  transition: all 0.15s;
+}
+
+/* CSS 闪电（clip-path） */
+.urgent-flash {
+  width: 18rpx;
+  height: 22rpx;
+  background: var(--color-danger);
+  clip-path: polygon(60% 0%, 15% 55%, 45% 55%, 40% 100%, 85% 42%, 55% 42%);
+}
+
+.urgent-chip-active {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.urgent-chip-active .urgent-flash {
+  background: #ffffff;
+}
+
+/* ============================================
+   双列瀑布卡片
+   ============================================ */
+.feed {
+  display: flex;
+  gap: 16rpx;
+  padding: 8rpx 24rpx 0;
+  align-items: flex-start;
+}
+
+.feed-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.feed-card {
+  background: #ffffff;
+  border-radius: 22rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s;
+}
+
+.feed-card:active {
+  transform: scale(0.975);
+}
+
+/* 图片区 */
+.fc-img-wrap {
+  position: relative;
+  width: 100%;
+  font-size: 0;
+}
+
+.fc-img {
+  width: 100%;
+}
+
+/* 类型角标（毛玻璃白底 + 彩字） */
+.fc-type {
+  position: absolute;
+  top: 14rpx;
+  left: 14rpx;
+  padding: 4rpx 16rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.fc-type-found {
+  color: #389e0d;
+}
+
+.fc-type-lost {
+  color: #d4661a;
+}
+
+/* 急寻角标 */
+.fc-urgent {
+  position: absolute;
+  top: 14rpx;
+  right: 14rpx;
+  padding: 4rpx 16rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--color-danger);
+  border-radius: var(--radius-full);
+}
+
+/* 已完成蒙层 */
+.fc-done {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc-done-text {
+  padding: 8rpx 26rpx;
+  background: rgba(82, 196, 26, 0.92);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+/* 内容区 */
+.fc-body {
+  padding: 18rpx 20rpx 20rpx;
+}
+
+.fc-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 27rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.45;
+}
+
+/* 地点行 */
+.fc-loc-row {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+/* CSS 定位点（外圈 + 内芯） */
+.fc-loc-pin {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--color-primary);
+  box-sizing: border-box;
+  position: relative;
+  margin-right: 10rpx;
+  flex-shrink: 0;
+}
+
+.fc-loc-pin::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4rpx;
+  height: 4rpx;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.fc-loc {
+  font-size: 22rpx;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 酬谢 chip */
+.fc-reward {
+  display: inline-block;
+  margin-top: 12rpx;
+  padding: 2rpx 16rpx;
+  font-size: 20rpx;
+  color: #d48806;
+  background: #fff7e6;
+  border-radius: var(--radius-sm);
+}
+
+/* 底部：发布人 + 时间 */
+.fc-foot {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f4f5f7;
+}
+
+.fc-avatar {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  margin-right: 10rpx;
+  flex-shrink: 0;
+}
+
+.fc-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 21rpx;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fc-time {
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  font-size: 20rpx;
+  color: var(--color-text-placeholder);
+}
+
+/* ============================================
+   空状态图标（CSS 手绘）
+   ============================================ */
+.empty-icon-ring {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 6rpx solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon-line {
+  width: 44rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  background: var(--color-border);
+}
+
+/* ============================================
+   列表底部
+   ============================================ */
+.list-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  padding: 32rpx 0 8rpx;
+}
+
+.list-footer-line {
+  width: 80rpx;
+  height: 1rpx;
+  background: var(--color-border);
+}
+
+.list-footer-text {
+  font-size: 22rpx;
+  color: var(--color-text-placeholder);
+}
+
+/* ============================================
+   悬浮发布按钮
+   ============================================ */
+.fab {
+  position: fixed;
+  right: 32rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 10rpx 28rpx rgba(74, 144, 217, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  transition: transform 0.15s;
+}
+
+.fab:active {
+  transform: scale(0.92);
+}
+
+.fab-plus-h {
+  position: absolute;
+  width: 44rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  background: #ffffff;
+}
+
+.fab-plus-v {
+  position: absolute;
+  width: 6rpx;
+  height: 44rpx;
+  border-radius: 3rpx;
+  background: #ffffff;
+}

@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* Toast & Modal 动画 */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-8px) scale(0.95); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* 品牌色 CSS 变量 */
+@theme {
+  --color-primary: #409EFF;
+  --color-primary-light: #66B1FF;
+  --color-primary-dark: #3A8EE6;
+  --color-primary-bg: #ECF5FF;
+  --color-primary-border: #B3D8FF;
+
+  --color-danger: #ef4444;
+  --color-danger-light: #fca5a5;
+  --color-danger-bg: #fef2f2;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  --color-text-dark: #2D3748;
+  --color-text-medium: #718096;
+  --color-text-light: #A0AEC0;
+  --color-text-placeholder: #9CA3AF;
+
+  --color-bg-page: #f0f2f5;
+  --color-bg-card: #ffffff;
+  --color-bg-light: #f5f7fa;
+  --color-bg-hover: #f3f4f6;
+
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-border-focus: #409EFF;
+}
+
+/* 全局基础样式 */
+@layer base {
+  /* Tailwind preflight 会重置 button 的 cursor，这里全局恢复 */
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html, body, #app {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--color-bg-page);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    color: #303133;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(144, 147, 153, 0.35);
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(144, 147, 153, 0.6);
+  }
+}
+
+/* 通用工具类 */
+@layer components {
+  .app-container {
+    padding: 20px;
+  }
+  .mb8 {
+    margin-bottom: 8px;
+  }
+}

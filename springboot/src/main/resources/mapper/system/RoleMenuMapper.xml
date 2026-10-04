@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fast.system.mapper.RoleMenuMapper">
+
+    <!--批量新增角色菜单关联-->
+    <insert id="batchRoleMenu">
+        insert into role_menu(role_id, menu_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.roleId},#{item.menuId})
+        </foreach>
+    </insert>
+
+</mapper>

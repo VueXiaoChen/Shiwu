@@ -1,0 +1,214 @@
+<!-- 首页 — 校园失物招领 -->
+<view class="page">
+
+  <!-- ========== 沉浸式品牌头 ========== -->
+  <view class="hero">
+    <!-- 状态栏占位 -->
+    <view style="height: {{statusBarHeight}}px;"></view>
+
+    <!-- 导航标题行 -->
+    <view class="hero-nav">
+      <text class="hero-brand">校园失物招领</text>
+    </view>
+
+    <!-- 标语 -->
+    <view class="hero-slogan-row">
+      <text class="hero-slogan">让每一件失物，都能回家</text>
+      <view class="hero-slogan-line"></view>
+    </view>
+
+    <!-- 搜索栏 + AI 找物入口 -->
+    <view class="hero-search-row">
+      <view class="hero-search" bindtap="goSearch">
+        <view class="search-icon"></view>
+        <text class="hero-search-ph">搜索丢失 / 拾到的物品</text>
+        <view class="hero-search-btn">搜索</view>
+      </view>
+      <view class="hero-ai-btn" bindtap="goAI">
+        <view class="hero-ai-spark"></view>
+        <text class="hero-ai-text">AI 找物</text>
+      </view>
+    </view>
+
+    <!-- 统计行 -->
+    <view class="hero-stats">
+      <view class="hs-item">
+        <text class="hs-num">{{stats.total}}</text>
+        <text class="hs-label">全部信息</text>
+      </view>
+      <view class="hs-gap"></view>
+      <view class="hs-item">
+        <text class="hs-num">{{stats.found}}</text>
+        <text class="hs-label">失物招领</text>
+      </view>
+      <view class="hs-gap"></view>
+      <view class="hs-item">
+        <text class="hs-num">{{stats.lost}}</text>
+        <text class="hs-label">寻物启事</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 双发布入口卡（压在品牌头上） ========== -->
+  <view class="entry-row">
+    <view class="entry-card entry-lost" bindtap="goPublish" data-type="lost">
+      <view class="entry-icon entry-icon-lost">
+        <view class="ei-search-ring"></view>
+        <view class="ei-search-handle"></view>
+      </view>
+      <view class="entry-texts">
+        <text class="entry-title">我丢东西了</text>
+        <text class="entry-sub">发布寻物启事</text>
+      </view>
+      <view class="entry-arrow"></view>
+    </view>
+    <view class="entry-card entry-found" bindtap="goPublish" data-type="found">
+      <view class="entry-icon entry-icon-found">
+        <view class="ei-hand-line"></view>
+        <view class="ei-hand-dot"></view>
+      </view>
+      <view class="entry-texts">
+        <text class="entry-title">我捡到了</text>
+        <text class="entry-sub">发布失物招领</text>
+      </view>
+      <view class="entry-arrow"></view>
+    </view>
+  </view>
+
+  <!-- ========== 公告（极简线条式，点击进详情） ========== -->
+  <view class="notice-bar">
+    <view class="notice-dot"></view>
+    <swiper class="notice-swiper" vertical autoplay circular interval="4000" duration="500">
+      <swiper-item wx:for="{{notices}}" wx:key="id">
+        <view class="notice-item" hover-class="notice-item-hover"
+              bindtap="goNotice" data-id="{{item.id}}">
+          <text class="notice-text">{{item.title}}</text>
+          <view class="notice-arrow"></view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <!-- ========== 分类横滑条 ========== -->
+  <scroll-view class="cate-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="cate-row">
+      <view class="cate-item {{activeCategoryId === item.id ? 'cate-item-active' : ''}}"
+            wx:for="{{categories}}" wx:key="id"
+            bindtap="onCategoryTap" data-id="{{item.id}}">
+        <view class="cate-tile cate-tile-c{{index % 8}}">
+          <image wx:if="{{item.icon}}" class="cate-img" src="{{item.icon}}" mode="aspectFit"></image>
+          <view wx:else class="cate-icon cate-icon-default"></view>
+        </view>
+        <text class="cate-name">{{item.name}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- ========== Tab 筛选栏（下划线式） ========== -->
+  <view class="filter-bar">
+    <view class="filter-tabs">
+      <view class="ftab {{activeTab === 'all' ? 'ftab-active' : ''}}"
+            bindtap="onTabChange" data-tab="all">
+        <text>全部</text>
+        <view class="ftab-line"></view>
+      </view>
+      <view class="ftab {{activeTab === 'found' ? 'ftab-active' : ''}}"
+            bindtap="onTabChange" data-tab="found">
+        <text>招领</text>
+        <view class="ftab-line"></view>
+      </view>
+      <view class="ftab {{activeTab === 'lost' ? 'ftab-active' : ''}}"
+            bindtap="onTabChange" data-tab="lost">
+        <text>寻物</text>
+        <view class="ftab-line"></view>
+      </view>
+    </view>
+    <view class="urgent-chip {{onlyUrgent ? 'urgent-chip-active' : ''}}" bindtap="toggleUrgent">
+      <view class="urgent-flash"></view>
+      <text>急寻</text>
+    </view>
+  </view>
+
+  <!-- ========== 双列瀑布卡片 ========== -->
+  <view class="feed" wx:if="{{itemCount > 0}}">
+    <view class="feed-col">
+      <view class="feed-card" wx:for="{{leftList}}" wx:key="id"
+            bindtap="goDetail" data-id="{{item.id}}">
+        <view class="fc-img-wrap">
+          <image class="fc-img" src="{{item.images[0]}}" mode="widthFix" lazy-load />
+          <view class="fc-type {{item.type === 'found' ? 'fc-type-found' : 'fc-type-lost'}}">
+            {{item.type === 'found' ? '招领' : '寻物'}}
+          </view>
+          <view wx:if="{{item.urgent && item.status === 'open'}}" class="fc-urgent">急寻</view>
+          <view wx:if="{{item.status === 'done'}}" class="fc-done">
+            <text class="fc-done-text">{{item.type === 'found' ? '已归还' : '已找回'}}</text>
+          </view>
+        </view>
+        <view class="fc-body">
+          <text class="fc-title">{{item.title}}</text>
+          <view class="fc-loc-row">
+            <view class="fc-loc-pin"></view>
+            <text class="fc-loc">{{item.location}}</text>
+          </view>
+          <view wx:if="{{item.reward}}" class="fc-reward">酬谢 {{item.reward}}</view>
+          <view class="fc-foot">
+            <image class="fc-avatar" src="{{item.publisher.avatar}}" mode="aspectFill" />
+            <text class="fc-name">{{item.publisher.name}}</text>
+            <text class="fc-time">{{item.publishTime}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="feed-col">
+      <view class="feed-card" wx:for="{{rightList}}" wx:key="id"
+            bindtap="goDetail" data-id="{{item.id}}">
+        <view class="fc-img-wrap">
+          <image class="fc-img" src="{{item.images[0]}}" mode="widthFix" lazy-load />
+          <view class="fc-type {{item.type === 'found' ? 'fc-type-found' : 'fc-type-lost'}}">
+            {{item.type === 'found' ? '招领' : '寻物'}}
+          </view>
+          <view wx:if="{{item.urgent && item.status === 'open'}}" class="fc-urgent">急寻</view>
+          <view wx:if="{{item.status === 'done'}}" class="fc-done">
+            <text class="fc-done-text">{{item.type === 'found' ? '已归还' : '已找回'}}</text>
+          </view>
+        </view>
+        <view class="fc-body">
+          <text class="fc-title">{{item.title}}</text>
+          <view class="fc-loc-row">
+            <view class="fc-loc-pin"></view>
+            <text class="fc-loc">{{item.location}}</text>
+          </view>
+          <view wx:if="{{item.reward}}" class="fc-reward">酬谢 {{item.reward}}</view>
+          <view class="fc-foot">
+            <image class="fc-avatar" src="{{item.publisher.avatar}}" mode="aspectFill" />
+            <text class="fc-name">{{item.publisher.name}}</text>
+            <text class="fc-time">{{item.publishTime}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{itemCount === 0}}" class="empty-state">
+    <view class="empty-icon-ring">
+      <view class="empty-icon-line"></view>
+    </view>
+    <text class="empty-text">暂时没有相关信息</text>
+    <text class="empty-hint">换个筛选条件试试吧</text>
+  </view>
+
+  <!-- 列表底部提示 -->
+  <view wx:if="{{itemCount > 0}}" class="list-footer">
+    <view class="list-footer-line"></view>
+    <text class="list-footer-text">已经到底啦</text>
+    <view class="list-footer-line"></view>
+  </view>
+
+  <!-- ========== 悬浮发布按钮 ========== -->
+  <view class="fab" bindtap="goPublish" data-type="lost">
+    <view class="fab-plus-h"></view>
+    <view class="fab-plus-v"></view>
+  </view>
+
+</view>

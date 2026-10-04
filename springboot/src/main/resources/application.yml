@@ -1,0 +1,121 @@
+# 项目相关配置
+fast:
+  # 文件路径: 指定上传文件的保存位置为当前目录同级别的file文件夹
+  profile: ./file
+
+# spring配置
+spring:
+  # 数据源(数据库连接) 的配置
+  datasource:
+    # 数据库连接池类型：使用阿里巴巴的Druid连接池（高效且功能强大）
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 数据库连接地址（最重要的配置！）：
+    # jdbc:mysql:// 表示使用JDBC连接MySQL
+    # localhost:3306 表示数据库在本地电脑，端口3306（MySQL默认端口）
+    # /fast 表示要连接的数据库名称（需要先在MySQL中创建这个数据库）
+    # ?后面的都是连接参数：
+    #   useUnicode=true：使用Unicode字符集
+    #   characterEncoding=utf8：使用UTF-8编码（避免中文乱码）
+    #   zeroDateTimeBehavior=convertToNull：把0000-00-00这种日期转成null
+    #   useSSL=true：启用SSL加密连接（安全）
+    #   serverTimezone=GMT%2B8：设置时区为东八区（北京时间）
+    # 注意：fast要换成你实际创建的数据库名
+    url: jdbc:mysql://localhost:3306/lost-items?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root # 这里填你的 mysql的用户名
+    password: 123456 # 这里填你的 mysql的密码
+  # 配置security的默认用户账号密码
+  # 这个配置的目的是为了不在控制台中输出密码字段
+  # 默认情况下, 当你添加了spring-boot-starter-security的依赖之后
+  # 1.springboot会自动创建一个默认用户 用户名为user
+  # 2.密码: 每次启动后端的时候都会在控制台中随机生成
+  # 3. 所有接口都需要HTTP BASIC认证
+  #
+  # 问题: 这会导致以下情况
+  # - 访问任何接口都会弹出浏览器的登录框
+  # - 每次重启应用密码都会变化
+  # - 不符合我们想要的使用JWT令牌认证的需求
+  security:
+    user:
+      name: 123
+      password: 123
+  # Spring MVC 文件上传配置
+  servlet:
+    multipart:
+      # 单个文件最大大小 100MB
+      # 这个配置限制用户上传的单个文件不能超过指定大小
+      max-file-size: 100MB
+      # 总请求最大大小 100MB
+      # 这个配置限制整个HTTP请求的大小（包括文件和其他表单数据）
+      # 如果用户同时上传多个文件，所有文件加起来不能超过这个大小
+      max-request-size: 100MB
+      # 启用multipart支持
+      # 这个开关控制是否启用Spring的文件上传功能
+      # 如果设置为false，Spring将不会解析multipart/form-data类型的请求
+      enabled: true
+  # Spring AI 接入 DeepSeek 大模型(小程序AI找物助手用)
+  ai:
+    deepseek:
+      # DeepSeek 开放平台申请的 API Key
+      api-key: sk-26ac80f8ecdc404aa9fff9428a5f5a39
+      chat:
+        # 使用的模型
+        model: deepseek-flash
+        # 回答的随机程度: 越低越严谨, 越高越发散
+        temperature: 0.3
+    # LLM调用失败只试1次, 快速降级, 避免小程序端长时间转圈
+    retry:
+      max-attempts: 1
+
+# 环境配置
+server:
+  port: 8080
+  servlet:
+    # 后端访问路径: 根路径, 访问地址为 http://localhost:8080/
+    context-path: /
+
+# 日志配置
+logging:
+  level:
+    # 表示com.fast包下的日志输出级别为debug
+    # 日志级别从低到高: debug < info < warn < error
+    # debug级别会输出很详细的日志(包括调试信息), 适合开发阶段
+    com.fast: debug
+    # 配置spring框架的日志级别
+    # warn级别只输出警告和错误信息, 减少控制台输出
+    # 这样可以避免spring启动时的大量info日志 干扰我们看自己的日志
+    org.springframework: info
+
+# MyBatis Plus 配置
+# MyBatis Plus 是MyBatis的增强工具，内置分页、CRUD等功能
+mybatis-plus:
+  # 告诉mybatis 去哪里找对应的实体类映射（XML中短类名依赖此配置）
+  type-aliases-package: com.fast.**.domain
+  # 配置mapper的扫描, 告诉mybatis去哪里寻找SQL映射文件, 扫描所有类路径下的mapper文件夹中的XML映射文件
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  configuration:
+    # 日志实现: 使用Slf4j输出Mybatis的sql日志
+    # 设置这个以后, 可以在控制台中看到Mybatis执行的SQL语句, 方便调试
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      # 主键类型: AUTO=数据库自增
+      id-type: auto
+
+# JWT是什么? 可以把它理解为一个"电子身份证", 用户登录之后获得这个身份证, 后续请求api的时候携带这个身份证明
+token:
+  # 请求头的字段名: 前端需要再请求头携带此字段传递token 告诉前端如何传递token给后端
+  header: Authorization
+  # 前后端约定好的"暗号"
+  # 令牌密钥 用于加密/解密token的字符串
+  secret: ahsdiuhasidhiasdhiadshasdiasdhjisda3525a458454a12sd15asd484asd84asd54asd
+  # 令牌有效期(7天=10080分钟)过期后需要重新登录
+  expireTime: 10080
+
+# 微信小程序配置（用于微信一键登录）
+# 请替换为你在微信公众平台申请的真实 AppID 和 AppSecret
+wx:
+  appid: wxeaab6859591c1ae5
+  secret: 039bf770118491443e2205001fca4f3e
+
+

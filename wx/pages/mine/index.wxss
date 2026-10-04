@@ -1,0 +1,619 @@
+/**
+ * 个人中心样式 — 精美重设计
+ * 
+ * 设计语言：柔和渐变 + 卡片层次 + 充足留白 + 精致圆角
+ * 三种状态的样式全覆盖，JS 逻辑零改动
+ */
+
+/* ============================================
+   页面根容器
+   ============================================ */
+.page-root {
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--color-bg-page);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ============================================
+   状态 1：未登录
+   ============================================ */
+.unlogin {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 48rpx;
+}
+
+/* ---- 品牌区 ---- */
+.brand-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 160rpx;
+  padding-bottom: 48rpx;
+}
+
+.brand-avatar {
+  margin-bottom: 32rpx;
+}
+
+.brand-avatar-inner {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #4a90d9 0%, #6db3f2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(74, 144, 217, 0.25);
+}
+
+.brand-avatar-text {
+  font-size: 52rpx;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 2rpx;
+}
+
+.brand-name {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 1rpx;
+}
+
+.brand-desc {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+}
+
+/* ---- 登录卡片 ---- */
+.login-card {
+  width: 100%;
+  background: var(--color-bg-card);
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid var(--color-border-light);
+}
+
+.login-card-icon {
+  margin-bottom: 24rpx;
+}
+
+.lci-circle {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #07c160;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(7, 193, 96, 0.25);
+}
+
+.lci-letter {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.login-card-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 8rpx;
+}
+
+.login-card-sub {
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+  margin-bottom: 40rpx;
+}
+
+/* 登录按钮 */
+.login-btn {
+  width: 100%;
+  height: 96rpx;
+  border: none;
+  border-radius: 48rpx;
+  background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 24rpx rgba(7, 193, 96, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.login-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 12rpx rgba(7, 193, 96, 0.2);
+}
+
+.login-btn[disabled] {
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.login-agreement {
+  margin-top: 24rpx;
+  font-size: 22rpx;
+  color: var(--color-text-placeholder);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ---- 底部装饰点 ---- */
+.unlogin-footer {
+  display: flex;
+  gap: 16rpx;
+  margin-top: auto;
+  padding: 60rpx 0;
+}
+
+.footer-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.footer-dot:nth-child(1) {
+  background: #4a90d9;
+  opacity: 0.5;
+}
+
+.footer-dot:nth-child(3) {
+  background: var(--color-text-placeholder);
+  opacity: 0.6;
+}
+
+/* ============================================
+   状态 2：设置头像昵称
+   ============================================ */
+.setup {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- 顶部引导 ---- */
+.setup-guide {
+  position: relative;
+  padding: 80rpx 48rpx 0;
+  overflow: hidden;
+}
+
+.guide-wave {
+  position: absolute;
+  top: -60rpx;
+  left: -40rpx;
+  right: -40rpx;
+  height: 280rpx;
+  background: linear-gradient(180deg, rgba(74, 144, 217, 0.06) 0%, transparent 100%);
+  border-radius: 0 0 50% 50%;
+}
+
+.guide-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.guide-icon {
+  width: 96rpx;
+  height: 96rpx;
+  margin: 0 auto 24rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a90d9, #6db3f2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 24rpx rgba(74, 144, 217, 0.2);
+}
+
+.guide-icon-text {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.guide-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 8rpx;
+}
+
+.guide-desc {
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+}
+
+/* ---- 设置卡片 ---- */
+.setup-card {
+  margin: 40rpx 40rpx 0;
+  background: var(--color-bg-card);
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx 40rpx;
+  box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid var(--color-border-light);
+}
+
+/* 头像选择区域 */
+.sc-avatar-area {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 44rpx;
+}
+
+.sc-avatar-btn {
+  width: 180rpx;
+  height: 180rpx;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  line-height: 1;
+  position: relative;
+}
+
+.sc-avatar-btn::after {
+  border: none;
+}
+
+.sc-avatar-img {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.sc-avatar-empty {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.sc-avatar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3rpx dashed var(--color-border);
+}
+
+.sc-avatar-plus {
+  font-size: 56rpx;
+  font-weight: 200;
+  color: var(--color-text-placeholder);
+  line-height: 1;
+  margin-bottom: 4rpx;
+}
+
+.sc-avatar-label {
+  font-size: 22rpx;
+  color: var(--color-text-muted);
+}
+
+/* 昵称输入 */
+.sc-input-group {
+  margin-bottom: 40rpx;
+}
+
+.sc-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+
+.sc-input-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.sc-input-count {
+  font-size: 24rpx;
+  color: var(--color-text-placeholder);
+}
+
+.sc-input {
+  width: 100%;
+  height: 92rpx;
+  padding: 0 28rpx;
+  background: var(--color-bg-page);
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  color: var(--color-text-primary);
+  box-sizing: border-box;
+  border: 1rpx solid transparent;
+  transition: border-color 0.2s;
+}
+
+.sc-input:focus {
+  border-color: var(--color-primary);
+  background: #ffffff;
+}
+
+/* 保存按钮 */
+.sc-save-btn {
+  width: 100%;
+  height: 92rpx;
+  border: none;
+  border-radius: 46rpx;
+  background: linear-gradient(135deg, #4a90d9 0%, #5ba0e8 100%);
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 20rpx rgba(74, 144, 217, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.sc-save-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 10rpx rgba(74, 144, 217, 0.2);
+}
+
+.sc-save-btn[disabled] {
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+/* 跳过链接 */
+.sc-skip {
+  margin-top: 28rpx;
+  text-align: center;
+  padding: 12rpx 0;
+}
+
+.sc-skip-text {
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+  position: relative;
+}
+
+.sc-skip-text::after {
+  content: '';
+  position: absolute;
+  bottom: -2rpx;
+  left: 0;
+  right: 0;
+  height: 1rpx;
+  background: var(--color-text-muted);
+  opacity: 0.4;
+}
+
+/* ============================================
+   状态 3：已登录个人主页
+   ============================================ */
+.profile {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- 头部：左头像 + 右信息，横向布局 ---- */
+.pf-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 40rpx 40rpx 24rpx;
+}
+
+/* 头像 */
+.pf-avatar-img {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+/* 右侧信息区 */
+.pf-info {
+  margin-left: 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 昵称 */
+.pf-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 性别标签 */
+.pf-gender-tag {
+  margin-top: 8rpx;
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2rpx 16rpx;
+  border-radius: 32rpx;
+  background: rgba(74, 144, 217, 0.1);
+  font-size: 22rpx;
+  color: var(--color-text-muted);
+}
+
+/* ---- 个人信息菜单 ---- */
+.pf-menu {
+  margin: 0 32rpx 24rpx;
+}
+
+.pf-menu-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 16rpx;
+  padding-left: 8rpx;
+  letter-spacing: 1rpx;
+}
+
+.pf-menu-list {
+  background: var(--color-bg-card);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
+  border: 1rpx solid var(--color-border-light);
+}
+
+.pf-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26rpx 28rpx;
+  border-bottom: 1rpx solid var(--color-border-light);
+}
+
+.pf-menu-item-last,
+.pf-menu-item:last-child {
+  border-bottom: none;
+}
+
+.pf-mi-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.pf-mi-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.pf-mi-icon-nick {
+  background: linear-gradient(135deg, #4a90d9, #6db3f2);
+}
+
+.pf-mi-icon-publish {
+  background: linear-gradient(135deg, #4a90d9, #6db3f2);
+}
+
+.pf-mi-icon-msg {
+  background: linear-gradient(135deg, #13c2c2, #5cdbd3);
+}
+
+.pf-mi-icon-user {
+  background: linear-gradient(135deg, #52c41a, #73d13d);
+}
+
+.pf-mi-icon-gender {
+  background: linear-gradient(135deg, #faad14, #ffc53d);
+}
+
+.pf-mi-icon-id {
+  background: linear-gradient(135deg, #8c8c8c, #bfbfbf);
+}
+
+.pf-mi-label {
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.pf-mi-value {
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+  max-width: 320rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 右侧箭头 + 值容器 */
+.pf-mi-right {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pf-mi-arrow {
+  font-size: 32rpx;
+  color: var(--color-text-placeholder);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.pf-mi-value-mono {
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+}
+
+/* ---- 操作区 ---- */
+.pf-actions {
+  margin: 8rpx 32rpx 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.pf-act-btn {
+  width: 100%;
+  height: 88rpx;
+  border: none;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  transition: opacity 0.15s;
+}
+
+.pf-act-btn:active {
+  opacity: 0.75;
+}
+
+.pf-act-logout {
+  background: rgba(232, 116, 107, 0.06);
+  color: var(--color-danger);
+  border: 1rpx solid rgba(232, 116, 107, 0.12);
+}
+
+/* ---- 版本号 ---- */
+.pf-version {
+  margin-top: auto;
+  padding: 48rpx 0 40rpx;
+  text-align: center;
+}
+
+.pf-ver-text {
+  font-size: 22rpx;
+  color: var(--color-text-placeholder);
+  letter-spacing: 1rpx;
+}

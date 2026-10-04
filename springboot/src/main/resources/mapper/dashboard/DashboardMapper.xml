@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fast.dashboard.mapper.DashboardMapper">
+
+    <!-- 近7天发布趋势: 按天分组统计寻物/招领数量(没发布的日期不会出行, Java侧补0) -->
+    <select id="selectTrend7d" resultType="java.util.HashMap">
+        select date_format(create_time, '%Y-%m-%d') as day,
+               sum(case when type = 'lost' then 1 else 0 end) as lost,
+               sum(case when type = 'found' then 1 else 0 end) as found
+        from item
+        where create_time >= date_sub(curdate(), interval 6 day)
+        group by day
+        order by day
+    </select>
+
+    <!-- 分类分布: 每个分类下有多少物品(没有物品的分类也展示, 数量为0) -->
+    <select id="selectCategoryDist" resultType="java.util.HashMap">
+        select c.category_name as name,
+               count(i.item_id) as value
+        from category c
+        left join item i on i.category_id = c.category_id
+        group by c.category_id, c.category_name
+        order by value desc, c.category_sort
+    </select>
+
+</mapper>

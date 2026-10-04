@@ -1,0 +1,84 @@
+<!-- 我的发布 — 状态筛选 Tab + 单列信息卡片 -->
+<view class="page-container">
+
+  <!-- ========== 状态筛选 Tab ========== -->
+  <view class="status-bar">
+    <view class="stab {{activeStatus === 'all' ? 'stab-active' : ''}}"
+          bindtap="onStatusChange" data-status="all">
+      <text>全部 {{counts.all}}</text>
+      <view class="stab-line"></view>
+    </view>
+    <view class="stab {{activeStatus === 'open' ? 'stab-active' : ''}}"
+          bindtap="onStatusChange" data-status="open">
+      <text>进行中 {{counts.open}}</text>
+      <view class="stab-line"></view>
+    </view>
+    <view class="stab {{activeStatus === 'done' ? 'stab-active' : ''}}"
+          bindtap="onStatusChange" data-status="done">
+      <text>已完成 {{counts.done}}</text>
+      <view class="stab-line"></view>
+    </view>
+  </view>
+
+  <!-- ========== 发布列表 ========== -->
+  <view class="pub-list" wx:if="{{list.length > 0}}">
+    <view class="pub-card" wx:for="{{list}}" wx:key="id"
+          bindtap="goDetail" data-id="{{item.id}}">
+
+      <!-- 上半部分：图 + 信息 -->
+      <view class="pc-main">
+        <view class="pc-img-wrap">
+          <image class="pc-img" src="{{item.images[0]}}" mode="aspectFill" lazy-load />
+          <view wx:if="{{item.status === 'done'}}" class="pc-done-mask">
+            <text>{{item.type === 'found' ? '已归还' : '已找回'}}</text>
+          </view>
+        </view>
+        <view class="pc-info">
+          <view class="pc-title-row">
+            <view class="pc-type {{item.type === 'found' ? 'pc-type-found' : 'pc-type-lost'}}">
+              {{item.type === 'found' ? '招领' : '寻物'}}
+            </view>
+            <text class="pc-title">{{item.title}}</text>
+          </view>
+          <view class="pc-loc-row">
+            <view class="pc-loc-pin"></view>
+            <text class="pc-loc">{{item.location}}</text>
+          </view>
+          <view class="pc-meta-row">
+            <text class="pc-time">{{item.publishTime}}</text>
+            <text class="pc-views">{{item.views}} 浏览</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 下半部分：操作按钮（catchtap 阻止冒泡到卡片） -->
+      <view class="pc-actions">
+        <view class="pc-act-btn pc-act-delete"
+              catchtap="onDeleteTap" data-id="{{item.id}}">删除</view>
+        <view wx:if="{{item.status === 'open'}}"
+              class="pc-act-btn pc-act-finish"
+              catchtap="onFinishTap" data-id="{{item.id}}" data-type="{{item.type}}">
+          {{item.type === 'found' ? '标记已归还' : '标记已找回'}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 列表底部提示 -->
+    <view class="list-footer">
+      <view class="list-footer-line"></view>
+      <text class="list-footer-text">已经到底啦</text>
+      <view class="list-footer-line"></view>
+    </view>
+  </view>
+
+  <!-- ========== 空状态 ========== -->
+  <view wx:else class="empty-state">
+    <view class="empty-icon-ring">
+      <view class="empty-icon-line"></view>
+    </view>
+    <text class="empty-text">还没有发布记录</text>
+    <text class="empty-hint">丢了东西或捡到物品，都可以来发布</text>
+    <view class="empty-btn" bindtap="goPublish">去发布</view>
+  </view>
+
+</view>

@@ -1,0 +1,89 @@
+<!-- AI 找物助手页 — 智能匹配失物信息 -->
+<view class="page">
+
+  <!-- ========== 消息列表 ========== -->
+  <scroll-view class="msg-scroll" scroll-y scroll-into-view="{{scrollIntoId}}"
+               scroll-with-animation enhanced show-scrollbar="{{false}}">
+
+    <!-- 顶部提示 -->
+    <view class="ai-tip">
+      <text class="ai-tip-text">内容由 AI 生成，认领时请仔细核对物品特征</text>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}"
+          class="msg-row {{item.from === 'me' ? 'msg-row-me' : ''}}">
+
+      <!-- AI 头像（纯样式绘制，无图片依赖） -->
+      <view wx:if="{{item.from === 'ai'}}" class="ai-avatar">
+        <text class="ai-avatar-text">AI</text>
+      </view>
+
+      <view class="msg-bubble-wrap">
+        <view class="msg-bubble {{item.from === 'me' ? 'msg-bubble-me' : ''}}">
+          <text class="msg-text">{{item.text}}</text>
+        </view>
+
+        <!-- 匹配物品卡片 -->
+        <view wx:if="{{item.items.length > 0}}" class="match-list">
+          <view class="match-card" wx:for="{{item.items}}" wx:for-item="it" wx:key="id"
+                bindtap="goDetail" data-id="{{it.id}}">
+            <image class="match-thumb" src="{{it.images[0]}}" mode="aspectFill" />
+            <view class="match-info">
+              <text class="match-title">{{it.title}}</text>
+              <view class="match-meta">
+                <view class="match-tag {{it.type === 'found' ? 'match-tag-found' : 'match-tag-lost'}}">
+                  {{it.type === 'found' ? '招领' : '寻物'}}
+                </view>
+                <text class="match-loc">{{it.location}}</text>
+              </view>
+              <text class="match-time">{{it.publishTime}}</text>
+            </view>
+            <view class="match-arrow"></view>
+          </view>
+        </view>
+
+        <!-- 引导操作按钮（如去发布） -->
+        <view wx:if="{{item.action}}" class="action-btn"
+              bindtap="goPublish" data-type="{{item.action.publishType}}">
+          {{item.action.label}}
+        </view>
+
+        <!-- 开场消息下方的快捷提问 -->
+        <view wx:if="{{item.id === 1}}" class="quick-wrap">
+          <text class="quick-label">你可以试着问我：</text>
+          <view class="quick-chip" wx:for="{{quickQuestions}}" wx:for-item="q" wx:key="*this"
+                bindtap="onQuickTap" data-text="{{q}}">{{q}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- AI 思考中动画 -->
+    <view wx:if="{{thinking}}" id="thinking" class="msg-row">
+      <view class="ai-avatar">
+        <text class="ai-avatar-text">AI</text>
+      </view>
+      <view class="msg-bubble-wrap">
+        <view class="msg-bubble thinking-bubble">
+          <view class="think-dot"></view>
+          <view class="think-dot think-dot-2"></view>
+          <view class="think-dot think-dot-3"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部留白，避免被输入栏遮挡 -->
+    <view class="msg-scroll-pad"></view>
+  </scroll-view>
+
+  <!-- ========== 底部输入栏 ========== -->
+  <view class="input-bar">
+    <input class="input-field"
+           value="{{inputText}}"
+           placeholder="描述你丢失 / 捡到的物品..."
+           confirm-type="send"
+           bindinput="onInput"
+           bindconfirm="send" />
+    <view class="send-btn {{inputText && !thinking ? 'send-btn-active' : ''}}" bindtap="send">发送</view>
+  </view>
+
+</view>
