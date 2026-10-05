@@ -1,8 +1,10 @@
 package com.fast.ai.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fast.ai.domain.AiChatRequest;
-import com.fast.ai.service.AiTools;
-import com.fast.ai.service.IAiService;
+import com.fast.ai.domain.SearchKeyword;
+import com.fast.ai.mapper.SearchKeywordMapper;
+import com.fast.ai.service.*;
 import com.fast.content.mapper.CategoryMapper;
 import com.fast.item.domain.Item;
 import com.fast.item.mapper.ItemMapper;
@@ -37,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * AI找物助手 业务实现
@@ -47,6 +50,18 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class AiServiceImpl implements IAiService {
+
+    @Resource
+    private SearchKeywordMapper searchKeywordMapper;
+
+    @Resource
+    private ImageSearchService imageSearchService;
+
+    @Resource
+    private FaceFeatureService faceFeatureService;
+
+    @Resource
+    private ImageFeatureService imageFeatureService;
 
     @Resource
     private OpenAiChatModel chatModel;
@@ -70,25 +85,27 @@ public class AiServiceImpl implements IAiService {
     private static final String IMAGE_PUBLIC_PREFIX = "/upload/ai/";
 
     private static final String SYSTEM_PROMPT = """
-            你是校园失物招领平台的"AI找物助手", 帮同学找回丢失的物品、处理捡到的物品。今天的日期是%s。
+        你是校园失物招领平台的"AI找物助手", 帮同学找回丢失的物品、处理捡到的物品。今天的日期是%s。
 
-            工作规范:
-            1. 用户描述丢了什么/捡到什么时, 必须先调用searchItems工具在平台里检索, 再根据结果回答, 不允许凭空编造平台信息。
-            2. 用户上传图片时, 先仔细识别图片里的物品(品类、颜色、品牌、形状、材质等特征),
-               再调用searchByImage工具, 把识别出的特征词作为keywords传入检索, 不要跳过工具直接回答。
-               识别特征词时按顺序: 品类(耳机/水杯/钱包) > 品牌(AirPods/小米) > 颜色(黑色/白色) > 形状材质(入耳式/不锈钢)。
-               若图片模糊无法识别, 直接告诉用户"图片看不清, 请补充描述", 不要瞎猜关键词。
-            3. 检索到相关信息时, 告诉用户找到了几条, 提醒用户点击下方卡片查看详情、仔细核对物品特征后再联系对方。
-            4. 检索不到时: 可以主动提出帮用户发布信息。用户同意由你代发布, 就用publishItem;
-               用户没同意或没回应发布意愿, 就在回复的最末尾输出标记: 用户丢了东西输出[PUBLISH_LOST], 捡到东西输出[PUBLISH_FOUND],
-               标记只能出现在整条回复的结尾, 前面的正文不要提到这个标记。
-            5. 代发布(publishItem)前必须收集齐: 物品名称和特征、丢失/拾取地点、日期、联系方式。
-               缺什么就追问什么, 严禁编造。收集齐后先完整复述一遍让用户确认, 用户明确同意后才能调用publishItem。
-            6. 标记完成(finishMyItem)前必须先用getMyItems查出列表, 和用户确认是哪一条再操作。
-            7. 工具返回"用户未登录"时, 引导用户先到小程序底部「我的」页面登录, 再回来继续。
-            8. 只聊失物招领相关话题(找物、发布、平台使用等), 无关话题礼貌拒绝并拉回来。
-            9. 回复口语化、简洁友好, 控制在150字以内, 不使用表情符号和emoji, 不使用markdown格式。
-            """;
+        平台当前支持的特殊关键词：%s
+
+        工作规范:
+        1. 用户描述丢了什么/捡到什么，或输入以上关键词时，必须先调用 searchItems 工具在平台里检索。
+           关键词可以是物品词(耳机/AirPods)或人物特征词(美女/帅哥)，地点词一律放 location 参数。
+           不要在回复里直接编造平台数据。
+        2. 用户上传图片时，直接调用 searchByImageVector 工具，把图片 URL 作为参数传入。
+           系统会自动判断图片中是否有人脸，有人脸走人脸识别，无人脸走物品识别。
+           不要手动识别关键词，不要跳过工具直接回答。
+        3. 检索到相关信息时，告诉用户找到了几条，提醒用户点击下方卡片查看详情、核对特征后再联系对方。
+        4. 检索不到时，可以主动提出帮用户发布信息。
+        5. 代发布(publishItem)前必须收集齐: 物品名称和特征、地点、日期、联系方式。
+           如果涉及人物描述，要在 personTags 参数里填入人物特征标签(如 美女,长发)。
+           收集齐后先完整复述一遍让用户确认，用户明确同意后才能调用 publishItem。
+        6. 标记完成(finishMyItem)前必须先用 getMyItems 查出列表, 和用户确认是哪一条再操作。
+        7. 工具返回"用户未登录"时, 引导用户先到小程序底部「我的」页面登录。
+        8. 只聊失物招领相关话题。
+        9. 回复口语化、简洁友好, 控制在150字以内, 不使用表情符号和emoji, 不使用markdown格式。
+        """;
 
     @Override
     public void chatStream(AiChatRequest request, LoginUser loginUser, SseEmitter emitter) {
@@ -124,12 +141,23 @@ public class AiServiceImpl implements IAiService {
         log.info("AI对话开始: question={}, hasImage={}, imageUrl={}", question, hasImage, imageUrl);
 
         //2. 工具箱
-        AiTools aiTools = new AiTools(itemMapper, categoryMapper, loginUser, imageUrl);
+        AiTools aiTools = new AiTools(
+                itemMapper,
+                categoryMapper,
+                searchKeywordMapper,
+                loginUser,
+                imageUrl,
+                imageSearchService,
+                faceFeatureService,
+                imageFeatureService
+        );
 
         Flux<String> stream;
         try {
             List<Message> messages = new ArrayList<>();
-            messages.add(new SystemMessage(String.format(SYSTEM_PROMPT, LocalDate.now())));
+            String kwStr = loadKeywords();
+            messages.add(new SystemMessage(
+                    String.format(SYSTEM_PROMPT, LocalDate.now(), kwStr)));
             messages.addAll(toMessages(request.getHistory()));
             // ★ 关键: 走 buildUserMessage, 有图就把图片二进制塞进 Media 真正传给模型
             messages.add(buildUserMessage(question, imageUrl));
@@ -183,6 +211,17 @@ public class AiServiceImpl implements IAiService {
             disposable.dispose();
             emitter.complete();
         });
+    }
+
+    private String loadKeywords() {
+        List<SearchKeyword> list = searchKeywordMapper.selectList(
+                new LambdaQueryWrapper<SearchKeyword>()
+                        .eq(SearchKeyword::getEnabled, 1)
+                        .orderByAsc(SearchKeyword::getSortOrder));
+        if (list.isEmpty()) return "（暂无配置）";
+        return list.stream()
+                .map(SearchKeyword::getKeyword)
+                .collect(Collectors.joining("、"));
     }
 
     /**

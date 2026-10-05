@@ -75,4 +75,8 @@ public class Item {
     //搜索关键词(小程序搜索用, 一个词同时匹配标题/描述/地点)
     @TableField(exist = false)
     private String keyword;
+
+    private String personTags;    // 人物特征标签，如 "美女,长发"
+    private String faceFeature;   // 人脸特征向量，JSON 数组字符串
+    private String itemFeature;   // 物品图片特征向量，JSON 数组字符串
 }

@@ -80,7 +80,11 @@ server:
   servlet:
     # 后端访问路径: 根路径, 访问地址为 http://localhost:8080/
     context-path: /
-
+smartjavaai:
+  face:
+    model-path: models/seetaface6/
+  clip:
+    model-path: clip.pt
 # 日志配置
 logging:
   level:
