@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -44,8 +45,8 @@ import java.util.stream.Collectors;
 /**
  * AI找物助手 业务实现
  *
- * 用 OpenAiChatModel(走 OpenAI 兼容协议) 指向 DeepSeek,
- * 这样 UserMessage 里塞的 Media(图片) 才能被正确序列化传给模型
+ * 方法三改造：用户上传图片时，后端直接调用 ImageSearchService.search()，
+ * 把检索结果作为文本上下文塞给 AI，AI 只负责总结，不决定是否调用工具。
  */
 @Slf4j
 @Service
@@ -93,9 +94,9 @@ public class AiServiceImpl implements IAiService {
         1. 用户描述丢了什么/捡到什么，或输入以上关键词时，必须先调用 searchItems 工具在平台里检索。
            关键词可以是物品词(耳机/AirPods)或人物特征词(美女/帅哥)，地点词一律放 location 参数。
            不要在回复里直接编造平台数据。
-        2. 用户上传图片时，直接调用 searchByImageVector 工具，把图片 URL 作为参数传入。
-           系统会自动判断图片中是否有人脸，有人脸走人脸识别，无人脸走物品识别。
-           不要手动识别关键词，不要跳过工具直接回答。
+        2. 用户上传图片时，如果系统已经在消息里提供了【图片检索结果】，你只需要基于这个结果总结回答，
+           不要再调用 searchByImageVector 工具，也不要因为图片里有人脸就拒绝回答。
+           如果【图片检索结果】为空，就如实告诉用户没找到，并主动提出帮用户发布信息。
         3. 检索到相关信息时，告诉用户找到了几条，提醒用户点击下方卡片查看详情、核对特征后再联系对方。
         4. 检索不到时，可以主动提出帮用户发布信息。
         5. 代发布(publishItem)前必须收集齐: 物品名称和特征、地点、日期、联系方式。
@@ -140,7 +141,29 @@ public class AiServiceImpl implements IAiService {
 
         log.info("AI对话开始: question={}, hasImage={}, imageUrl={}", question, hasImage, imageUrl);
 
-        //2. 工具箱
+        // ★ 方法三核心：有图片时，后端直接跑检索，拿到结果作为上下文
+        // 注意：preSearchHits 只声明一次，后续只 addAll，不再重新赋值，保证事实 final
+        final List<Item> preSearchHits = new ArrayList<>();
+        String imageSearchContext = "";
+        if (hasImage) {
+            try {
+                String diskPath = urlToDiskPath(imageUrl);
+                List<Item> candidates = itemMapper.selectList(
+                        new LambdaQueryWrapper<Item>()
+                                .eq(Item::getStatus, "open")
+                                .orderByDesc(Item::getCreateTime)
+                                .last("limit 500"));
+                List<Item> hits = imageSearchService.search(diskPath, candidates);
+                preSearchHits.addAll(hits.stream().limit(10).toList());
+                imageSearchContext = buildSearchContext(preSearchHits);
+                log.info("主动图片检索完成: diskPath={}, 命中={} 条", diskPath, preSearchHits.size());
+            } catch (Exception e) {
+                log.error("主动图片检索失败", e);
+                imageSearchContext = "【图片检索结果】检索过程出错，请如实告知用户暂时无法检索。\n";
+            }
+        }
+
+        //2. 工具箱（仍保留工具，但提示词已让 AI 不再主动调 searchByImageVector）
         AiTools aiTools = new AiTools(
                 itemMapper,
                 categoryMapper,
@@ -159,8 +182,8 @@ public class AiServiceImpl implements IAiService {
             messages.add(new SystemMessage(
                     String.format(SYSTEM_PROMPT, LocalDate.now(), kwStr)));
             messages.addAll(toMessages(request.getHistory()));
-            // ★ 关键: 走 buildUserMessage, 有图就把图片二进制塞进 Media 真正传给模型
-            messages.add(buildUserMessage(question, imageUrl));
+            // ★ 把检索结果拼进用户消息
+            messages.add(buildUserMessage(question, imageUrl, imageSearchContext));
 
             stream = ChatClient.create(chatModel).prompt()
                     .messages(messages)
@@ -202,7 +225,23 @@ public class AiServiceImpl implements IAiService {
                     if (!tail.isEmpty()) {
                         sendDelta(emitter, tail);
                     }
-                    sendDone(emitter, aiTools.getMatchedItems(), action);
+                    // ★ 用预检索结果 + AI 可能补充检索的结果合并返回
+                    // 注意：finalItems 是新的局部变量，在 lambda 内声明，不引用外部被改过的变量
+                    List<Item> merged = new ArrayList<>(preSearchHits);
+                    for (Item it : aiTools.getMatchedItems()) {
+                        boolean exists = false;
+                        for (Item x : merged) {
+                            if (x.getItemId().equals(it.getItemId())) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) {
+                            merged.add(it);
+                        }
+                    }
+                    List<Item> finalItems = merged.stream().limit(50).toList();
+                    sendDone(emitter, finalItems, action);
                     emitter.complete();
                 }
         );
@@ -211,6 +250,39 @@ public class AiServiceImpl implements IAiService {
             disposable.dispose();
             emitter.complete();
         });
+    }
+
+    /**
+     * ★ 把图片 URL 转磁盘路径（与 AiTools 里逻辑一致）
+     */
+    private String urlToDiskPath(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+        String relative = imageUrl.replaceFirst("^/upload/", "");
+        return Paths.get(System.getProperty("user.dir"), "upload", relative)
+                .normalize()
+                .toString();
+    }
+
+    /**
+     * ★ 把检索结果拼成文本上下文给 AI
+     */
+    private String buildSearchContext(List<Item> hits) {
+        if (hits == null || hits.isEmpty()) {
+            return "【图片检索结果】未在平台找到相似的失物/招领信息。\n";
+        }
+        SimpleDateFormat day = new SimpleDateFormat("yyyy-MM-dd");
+        StringBuilder sb = new StringBuilder("【图片检索结果】根据图片特征，找到以下 ")
+                .append(hits.size()).append(" 条可能相关的信息：\n");
+        for (Item it : hits) {
+            sb.append("- itemId=").append(it.getItemId())
+                    .append(", 类型=").append("found".equals(it.getType()) ? "失物招领" : "寻物启事")
+                    .append(", 标题=").append(it.getTitle() == null ? "" : it.getTitle())
+                    .append(", 地点=").append(it.getLocation() == null ? "" : it.getLocation())
+                    .append(", 时间=").append(it.getHappenTime() == null ? "" : day.format(it.getHappenTime()))
+                    .append("\n");
+        }
+        sb.append("请基于以上结果总结回答用户，不要再调用 searchByImageVector 工具。\n");
+        return sb.toString();
     }
 
     private String loadKeywords() {
@@ -226,22 +298,21 @@ public class AiServiceImpl implements IAiService {
 
     /**
      * 组装本轮用户消息: 有图片就把图片二进制塞进 Media, 真正传给模型
+     * ★ 同时把预检索结果拼进文本
      */
-    private UserMessage buildUserMessage(String text, String imageUrl) {
-        String finalText = (text == null || text.isBlank())
+    private UserMessage buildUserMessage(String text, String imageUrl, String searchContext) {
+        String baseText = (text == null || text.isBlank())
                 ? "请帮我找找图片里的这个物品"
                 : text;
+        String finalText = (searchContext == null ? "" : searchContext) + "\n用户问题：" + baseText;
 
         if (imageUrl == null || imageUrl.isBlank()) {
             return new UserMessage(finalText);
         }
 
         try {
-            // 从保存的 URL 反推磁盘路径
-            Path imgPath = Paths.get(IMAGE_UPLOAD_DIR)
-                    .toAbsolutePath().normalize()
-                    .resolve(imageUrl.substring(imageUrl.lastIndexOf("/") + 1));
-            byte[] bytes = Files.readAllBytes(imgPath);
+            String diskPath = urlToDiskPath(imageUrl);
+            byte[] bytes = Files.readAllBytes(Paths.get(diskPath));
 
             String mimeType = guessMimeType(imageUrl);
             Media media = new Media(MimeType.valueOf(mimeType), new ByteArrayResource(bytes));
@@ -250,7 +321,7 @@ public class AiServiceImpl implements IAiService {
                     imageUrl, bytes.length, mimeType);
 
             return UserMessage.builder()
-                    .text(finalText + "\n请先仔细识别图片里的物品特征(品类/颜色/品牌/形状), 再用 searchByImage 工具检索")
+                    .text(finalText)
                     .media(media)
                     .build();
         } catch (IOException e) {

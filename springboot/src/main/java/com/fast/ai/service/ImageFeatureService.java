@@ -24,7 +24,7 @@ public class ImageFeatureService {
     public void init() {
         ClipModelConfig config = new ClipModelConfig();
         config.setModelEnum(ClipModelEnum.OPENAI);
-        config.setModelPath("clip.pt");
+        config.setModelPath("D:/IDEA/shiwu/models/clip/clip.pt");
         this.clipModel = ClipModelFactory.getInstance().getModel(config);
         log.info("CLIP 图片特征提取模型加载完成");
     }

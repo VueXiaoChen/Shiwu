@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,11 +32,9 @@ public class AiTools {
     private final String userImageUrl;
     private final ImageSearchService imageSearchService;
 
-    // ★ 新增：人脸和物品特征服务
+    // ★ 人脸和物品特征服务
     private final FaceFeatureService faceFeatureService;
     private final ImageFeatureService imageFeatureService;
-
-    private static final String IMAGE_UPLOAD_DIR = "upload/ai/";
 
     public AiTools(ItemMapper itemMapper,
                    CategoryMapper categoryMapper,
@@ -64,60 +63,79 @@ public class AiTools {
     }
 
     /**
+     * 把图片 URL 转成本地磁盘路径
+     * 例：/upload/ai/0951a6a8c1e24b78bb11747d3628b978.png
+     *  → D:/IDEA/shiwu/upload/ai/0951a6a8c1e24b78bb11747d3628b978.png
+     * 保留 URL 里 /upload/ 之后的完整相对路径，不丢中间目录。
+     */
+    private String urlToDiskPath(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+        String relative = imageUrl.replaceFirst("^/upload/", "");
+        String diskPath = Paths.get(System.getProperty("user.dir"), "upload", relative)
+                .normalize()
+                .toString();
+        log.debug("URL={} → 磁盘路径={}, 存在={}", imageUrl, diskPath, new File(diskPath).exists());
+        return diskPath;
+    }
+
+    /**
+     * 解析出「真实可用」的图片 URL：
+     * 优先用构造时注入的 userImageUrl（上传接口返回的真实 URL），
+     * 避免 AI 在调用工具时编造文件名。
+     */
+    private String resolveRealImageUrl(String aiProvidedUrl) {
+        if (this.userImageUrl != null && !this.userImageUrl.isBlank()) {
+            return this.userImageUrl;
+        }
+        return aiProvidedUrl;
+    }
+
+    /**
      * 提取图片特征并存入数据库
      * - 如果图中有人脸 → 提取人脸特征存入 face_feature
      * - 如果图中无人脸 → 提取物品特征存入 item_feature
      * - 提取失败不影响主流程，只记录日志
      */
     private void extractAndSaveFeature(Long itemId, String imageUrl) {
-        String diskPath = null;
+        log.info("开始提取特征 itemId={}, imageUrl={}", itemId, imageUrl);
+        String diskPath = urlToDiskPath(imageUrl);
+        log.info("特征提取磁盘路径: {}, 存在={}", diskPath, diskPath != null && Files.exists(Paths.get(diskPath)));
+
+        if (diskPath == null || !Files.exists(Paths.get(diskPath))) {
+            log.warn("特征提取跳过：文件不存在 itemId={}", itemId);
+            return;
+        }
+
+        boolean hasFace = false;
         try {
-            String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-            Path path = Paths.get(IMAGE_UPLOAD_DIR)
-                    .toAbsolutePath()
-                    .normalize()
-                    .resolve(fileName);
-            diskPath = path.toString();
-
-            if (!Files.exists(path)) {
-                log.warn("特征提取跳过：文件不存在 itemId={}, path={}", itemId, diskPath);
-                return;
-            }
-
-            boolean hasFace;
-            try {
-                hasFace = faceFeatureService.hasFace(diskPath);
-            } catch (Exception e) {
-                log.warn("人脸检测异常，按无人脸处理 itemId={}", itemId, e);
-                hasFace = false;
-            }
-
-            if (hasFace) {
-                try {
-                    float[] faceVec = faceFeatureService.extractTopFaceFeature(diskPath);
-                    String faceJson = ImageSearchService.toJson(faceVec);
-                    itemMapper.update(null, new LambdaUpdateWrapper<Item>()
-                            .eq(Item::getItemId, itemId)
-                            .set(Item::getFaceFeature, faceJson));
-                    log.info("人脸特征已入库 itemId={}, 维度={}", itemId, faceVec.length);
-                } catch (Exception e) {
-                    log.error("人脸特征提取失败 itemId={}", itemId, e);
-                }
-            } else {
-                try {
-                    float[] itemVec = imageFeatureService.extractFeatures(diskPath);
-                    String itemJson = ImageSearchService.toJson(itemVec);
-                    itemMapper.update(null, new LambdaUpdateWrapper<Item>()
-                            .eq(Item::getItemId, itemId)
-                            .set(Item::getItemFeature, itemJson));
-                    log.info("物品特征已入库 itemId={}, 维度={}", itemId, itemVec.length);
-                } catch (Exception e) {
-                    log.error("物品特征提取失败 itemId={}", itemId, e);
-                }
-            }
-
+            hasFace = faceFeatureService.hasFace(diskPath);
+            log.info("人脸检测结果 itemId={}, hasFace={}", itemId, hasFace);
         } catch (Exception e) {
-            log.error("特征提取整体失败 itemId={}, diskPath={}", itemId, diskPath, e);
+            log.warn("人脸检测异常 itemId={}", itemId, e);
+        }
+
+        if (hasFace) {
+            try {
+                float[] faceVec = faceFeatureService.extractTopFaceFeature(diskPath);
+                String faceJson = ImageSearchService.toJson(faceVec);
+                itemMapper.update(null, new LambdaUpdateWrapper<Item>()
+                        .eq(Item::getItemId, itemId)
+                        .set(Item::getFaceFeature, faceJson));
+                log.info("人脸特征已入库 itemId={}, 维度={}", itemId, faceVec.length);
+            } catch (Exception e) {
+                log.error("人脸特征提取失败 itemId={}", itemId, e);
+            }
+        } else {
+            try {
+                float[] itemVec = imageFeatureService.extractFeatures(diskPath);
+                String itemJson = ImageSearchService.toJson(itemVec);
+                itemMapper.update(null, new LambdaUpdateWrapper<Item>()
+                        .eq(Item::getItemId, itemId)
+                        .set(Item::getItemFeature, itemJson));
+                log.info("物品特征已入库 itemId={}, 维度={}", itemId, itemVec.length);
+            } catch (Exception e) {
+                log.error("物品特征提取失败 itemId={}", itemId, e);
+            }
         }
     }
 
@@ -132,7 +150,6 @@ public class AiTools {
             @ToolParam(description = "类型: lost寻物启事 found失物招领", required = false) String type,
             @ToolParam(description = "地点", required = false) String location) {
 
-        // 加载数据库动态关键词
         List<SearchKeyword> dynamicKws = searchKeywordMapper.selectList(
                 new LambdaQueryWrapper<SearchKeyword>()
                         .eq(SearchKeyword::getEnabled, 1)
@@ -184,6 +201,7 @@ public class AiTools {
 
     /**
      * 以图搜图（自动路由：人脸 / 物品）
+     * ★ 关键改动：优先使用 this.userImageUrl（真实上传 URL），忽略 AI 可能编造的 imageUrl
      */
     @Tool(description = "用户上传图片时调用。系统会自动判断图片中是否有人脸：" +
             "有人脸走人脸识别，无人脸走物品图片识别。返回 JSON 数组。")
@@ -192,10 +210,17 @@ public class AiTools {
             @ToolParam(description = "类型: lost/found，可不传", required = false) String type) {
 
         try {
-            String diskPath = Paths.get(IMAGE_UPLOAD_DIR)
-                    .toAbsolutePath().normalize()
-                    .resolve(imageUrl.substring(imageUrl.lastIndexOf("/") + 1))
-                    .toString();
+            // ★ 优先用真实上传的 URL，避免 AI 编造文件名
+            String realUrl = resolveRealImageUrl(imageUrl);
+            log.info("以图搜图使用 URL: {} (AI传入={})", realUrl, imageUrl);
+
+            String diskPath = urlToDiskPath(realUrl);
+            log.info("以图搜图磁盘路径: {}", diskPath);
+
+            if (diskPath == null || !Files.exists(Paths.get(diskPath))) {
+                log.warn("以图搜图跳过：文件不存在, diskPath={}", diskPath);
+                return "[]";
+            }
 
             List<Item> candidates = itemMapper.selectList(
                     new LambdaQueryWrapper<Item>()
@@ -211,7 +236,7 @@ public class AiTools {
             }
             List<Item> top = hits.stream().limit(10).toList();
             matchedItems.addAll(top);
-            log.info("以图搜图完成: imageUrl={}, 返回条数={}", imageUrl, top.size());
+            log.info("以图搜图完成: realUrl={}, 返回条数={}", realUrl, top.size());
             return toJsonSummary(top);
         } catch (Exception e) {
             log.error("以图搜图失败: imageUrl={}", imageUrl, e);
@@ -232,6 +257,7 @@ public class AiTools {
         matchedItems.addAll(list);
         return toJsonSummary(list);
     }
+
     @Tool(description = "代用户发布寻物启事或失物招领。调用前必须得到用户明确确认。")
     public String publishItem(
             @ToolParam(description = "类型: lost/found") String type,
@@ -243,12 +269,10 @@ public class AiTools {
             @ToolParam(description = "联系方式") String contact,
             @ToolParam(description = "人物特征标签，如 美女,长发，没有可不传", required = false) String personTags) {
 
-        // ========== 1. 登录校验 ==========
         if (loginUser == null) {
             return "用户未登录, 无法发布。请引导用户先到小程序「我的」页面登录后再来找我发布";
         }
 
-        // ========== 2. 组装 Item ==========
         Item item = new Item();
         item.setType("found".equals(type) ? "found" : "lost");
         item.setTitle(title);
@@ -275,11 +299,9 @@ public class AiTools {
             item.setHappenTime(new Date());
         }
 
-        // ========== 3. 插入数据库 ==========
         itemMapper.insert(item);
         Long itemId = item.getItemId();
 
-        // ========== 4. 提取并存储特征向量 ==========
         if (userImageUrl != null && !userImageUrl.isBlank()) {
             extractAndSaveFeature(itemId, userImageUrl);
         }
