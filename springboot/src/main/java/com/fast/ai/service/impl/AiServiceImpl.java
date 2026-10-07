@@ -8,6 +8,7 @@ import com.fast.ai.service.*;
 import com.fast.content.mapper.CategoryMapper;
 import com.fast.item.domain.Item;
 import com.fast.item.mapper.ItemMapper;
+import com.fast.system.config.fastConfig;
 import com.fast.system.domain.LoginUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
@@ -44,9 +45,8 @@ import java.util.stream.Collectors;
 
 /**
  * AI找物助手 业务实现
- *
- * 方法三改造：用户上传图片时，后端直接调用 ImageSearchService.search()，
- * 把检索结果作为文本上下文塞给 AI，AI 只负责总结，不决定是否调用工具。
+ * 方法三改造：上传图片时后端直接跑检索，把结果作为上下文给 AI，AI 只总结不决策。
+ * 统一路径：{profile}/file/upload/
  */
 @Slf4j
 @Service
@@ -73,17 +73,17 @@ public class AiServiceImpl implements IAiService {
     @Resource
     private CategoryMapper categoryMapper;
 
+    @Resource
+    private fastConfig fastConfig;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    //尾部滞留字符数
     private static final int HOLD_BACK = 20;
     private static final String MARK_LOST = "[PUBLISH_LOST]";
     private static final String MARK_FOUND = "[PUBLISH_FOUND]";
 
-    //图片本地存储目录: 项目运行目录下的 upload/ai, 跨平台安全
-    private static final String IMAGE_UPLOAD_DIR = "upload/ai/";
-    //对外可访问的图片前缀(需和静态资源映射/Nginx 对齐)
-    private static final String IMAGE_PUBLIC_PREFIX = "/upload/ai/";
+    // 对外可访问的图片前缀（统一 /file/upload/）
+    private static final String IMAGE_PUBLIC_PREFIX = "/file/upload/";
 
     private static final String SYSTEM_PROMPT = """
         你是校园失物招领平台的"AI找物助手", 帮同学找回丢失的物品、处理捡到的物品。今天的日期是%s。
@@ -112,7 +112,7 @@ public class AiServiceImpl implements IAiService {
     public void chatStream(AiChatRequest request, LoginUser loginUser, SseEmitter emitter) {
         String question = request.getQuestion() == null ? "" : request.getQuestion().trim();
 
-        //1. 处理图片: 兼容两种入参(imageFile 直接上传 / imageUrl 已上传后的URL)
+        // 1. 处理图片
         String imageUrl = request.getImageUrl();
         if (imageUrl == null && request.getImageFile() != null && !request.getImageFile().isEmpty()) {
             try {
@@ -128,7 +128,6 @@ public class AiServiceImpl implements IAiService {
         }
         boolean hasImage = imageUrl != null && !imageUrl.isBlank();
 
-        //输入防护
         if (question.isEmpty() && !hasImage) {
             sendDelta(emitter, "你想找什么东西呀? 描述一下物品和丢失地点, 或者上传一张图片, 我来帮你在平台里找找。");
             sendDone(emitter, List.of(), null);
@@ -141,8 +140,7 @@ public class AiServiceImpl implements IAiService {
 
         log.info("AI对话开始: question={}, hasImage={}, imageUrl={}", question, hasImage, imageUrl);
 
-        // ★ 方法三核心：有图片时，后端直接跑检索，拿到结果作为上下文
-        // 注意：preSearchHits 只声明一次，后续只 addAll，不再重新赋值，保证事实 final
+        // ★ 有图片时，后端直接跑检索
         final List<Item> preSearchHits = new ArrayList<>();
         String imageSearchContext = "";
         if (hasImage) {
@@ -163,7 +161,7 @@ public class AiServiceImpl implements IAiService {
             }
         }
 
-        //2. 工具箱（仍保留工具，但提示词已让 AI 不再主动调 searchByImageVector）
+        // 2. 工具箱
         AiTools aiTools = new AiTools(
                 itemMapper,
                 categoryMapper,
@@ -182,7 +180,6 @@ public class AiServiceImpl implements IAiService {
             messages.add(new SystemMessage(
                     String.format(SYSTEM_PROMPT, LocalDate.now(), kwStr)));
             messages.addAll(toMessages(request.getHistory()));
-            // ★ 把检索结果拼进用户消息
             messages.add(buildUserMessage(question, imageUrl, imageSearchContext));
 
             stream = ChatClient.create(chatModel).prompt()
@@ -196,7 +193,7 @@ public class AiServiceImpl implements IAiService {
             return;
         }
 
-        //3. 尾部滞留 + SSE 推送
+        // 3. 尾部滞留 + SSE 推送
         StringBuilder pending = new StringBuilder();
         Disposable disposable = stream.subscribe(
                 token -> {
@@ -225,8 +222,6 @@ public class AiServiceImpl implements IAiService {
                     if (!tail.isEmpty()) {
                         sendDelta(emitter, tail);
                     }
-                    // ★ 用预检索结果 + AI 可能补充检索的结果合并返回
-                    // 注意：finalItems 是新的局部变量，在 lambda 内声明，不引用外部被改过的变量
                     List<Item> merged = new ArrayList<>(preSearchHits);
                     for (Item it : aiTools.getMatchedItems()) {
                         boolean exists = false;
@@ -253,18 +248,18 @@ public class AiServiceImpl implements IAiService {
     }
 
     /**
-     * ★ 把图片 URL 转磁盘路径（与 AiTools 里逻辑一致）
+     * URL 转磁盘路径，统一用 {profile}/file/upload/
      */
     private String urlToDiskPath(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) return null;
-        String relative = imageUrl.replaceFirst("^/upload/", "");
-        return Paths.get(System.getProperty("user.dir"), "upload", relative)
+        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+        return Paths.get(fastConfig.getProfile(), "file", "upload", fileName)
                 .normalize()
                 .toString();
     }
 
     /**
-     * ★ 把检索结果拼成文本上下文给 AI
+     * 把检索结果拼成文本上下文给 AI
      */
     private String buildSearchContext(List<Item> hits) {
         if (hits == null || hits.isEmpty()) {
@@ -297,8 +292,7 @@ public class AiServiceImpl implements IAiService {
     }
 
     /**
-     * 组装本轮用户消息: 有图片就把图片二进制塞进 Media, 真正传给模型
-     * ★ 同时把预检索结果拼进文本
+     * 组装用户消息，把检索上下文拼进去
      */
     private UserMessage buildUserMessage(String text, String imageUrl, String searchContext) {
         String baseText = (text == null || text.isBlank())
@@ -330,9 +324,6 @@ public class AiServiceImpl implements IAiService {
         }
     }
 
-    /**
-     * 按扩展名猜 MIME 类型
-     */
     private String guessMimeType(String url) {
         String lower = url.toLowerCase();
         if (lower.endsWith(".png")) return "image/png";
@@ -342,12 +333,13 @@ public class AiServiceImpl implements IAiService {
     }
 
     /**
-     * 保存图片, 返回对外可访问的 URL
+     * 保存图片，统一到 {profile}/file/upload/，返回 URL /file/upload/xxx
      */
     @Override
     public String saveImage(MultipartFile file) {
         try {
-            Path dir = Paths.get(IMAGE_UPLOAD_DIR).toAbsolutePath().normalize();
+            Path dir = Paths.get(fastConfig.getProfile(), "file", "upload")
+                    .toAbsolutePath().normalize();
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
             }
@@ -373,9 +365,6 @@ public class AiServiceImpl implements IAiService {
         }
     }
 
-    /**
-     * 历史消息转模型消息(保证最后一条不是 assistant)
-     */
     private List<Message> toMessages(List<AiChatRequest.HistoryMessage> history) {
         List<Message> messages = new ArrayList<>();
         if (history == null || history.isEmpty()) return messages;

@@ -72,9 +72,11 @@ public class ItemController extends BaseController {
 
     /**
      * 发布物品信息(小程序发布页用)
+     * ★ 强制使用当前登录用户，防止 user_id 为空
      */
     @PostMapping("/insertItem")
     public AjaxResult insertItem(@RequestBody Item item) {
+        item.setUserId(SecurityUtils.getUserId());
         return toAjax(itemService.insertItem(item));
     }
 

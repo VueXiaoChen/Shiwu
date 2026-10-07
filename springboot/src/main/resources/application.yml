@@ -1,7 +1,7 @@
 # 项目相关配置
 fast:
   # 文件路径: 指定上传文件的保存位置为当前目录同级别的file文件夹
-  profile: ./file
+  profile: ${SHIWU_PROFILE:${user.dir}}
 
 # spring配置
 spring:

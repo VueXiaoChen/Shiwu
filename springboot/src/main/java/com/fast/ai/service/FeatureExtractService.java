@@ -12,15 +12,9 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-/**
- * 图片特征提取服务
- */
 @Slf4j
 @Service
 public class FeatureExtractService {
-
-    @Resource
-    private fastConfig fastConfig;
 
     @Resource
     private ItemMapper itemMapper;
@@ -31,15 +25,12 @@ public class FeatureExtractService {
     @Resource
     private ImageFeatureService imageFeatureService;
 
-    // 图片统一存放目录（与 FileController 保存目录一致）
-    private static final String IMAGE_UPLOAD_DIR = "upload/ai/";
+    @Resource
+    private fastConfig fastConfig;
 
-    /**
-     * 提取图片特征并写入 item 表
-     */
     public void extractAndSave(Long itemId, String imageUrl) {
         if (itemId == null || imageUrl == null || imageUrl.isBlank()) {
-            log.warn("特征提取跳过：itemId 或 imageUrl 为空 itemId={}, imageUrl={}", itemId, imageUrl);
+            log.warn("特征提取跳过：itemId 或 imageUrl 为空");
             return;
         }
 
@@ -56,7 +47,7 @@ public class FeatureExtractService {
             hasFace = faceFeatureService.hasFace(diskPath);
             log.info("人脸检测结果 itemId={}, hasFace={}", itemId, hasFace);
         } catch (Exception e) {
-            log.warn("人脸检测异常，按无人脸处理 itemId={}", itemId, e);
+            log.warn("人脸检测异常 itemId={}", itemId, e);
         }
 
         if (hasFace) {
@@ -86,17 +77,10 @@ public class FeatureExtractService {
         }
     }
 
-    /**
-     * URL 转磁盘路径
-     * 不管 URL 是 /upload/ai/xxx.png 还是 /profile/upload/xxx.png，
-     * 一律取文件名，拼到 {user.dir}/upload/ai/ 下
-     */
-
-
     private String urlToDiskPath(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) return null;
         String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-        String diskPath = Paths.get(fastConfig.getProfile(), "upload", "ai", fileName)
+        String diskPath = Paths.get(fastConfig.getProfile(), "file", "upload", fileName)
                 .normalize().toString();
         log.debug("URL={} → 磁盘路径={}, 存在={}", imageUrl, diskPath, new File(diskPath).exists());
         return diskPath;

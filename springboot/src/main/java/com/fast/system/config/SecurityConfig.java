@@ -79,7 +79,7 @@ public class SecurityConfig {
                 //6.路径权限配置 - 定义哪些路径需要认证, 哪些路径不需要认证
                 .authorizeHttpRequests(req -> req
                         //公开接口 - 所有人都可以访问
-                        .requestMatchers("/login", "/register", "/wx-login", "/profile/**").permitAll()
+                        .requestMatchers("/login", "/register", "/wx-login", "/file/**","/profile/**").permitAll()
                         //公告查询接口公开 - 小程序未登录也能浏览公告
                         .requestMatchers("/content/notice/selectNoticeList", "/content/notice/selectNoticeByNoticeId/**").permitAll()
                         //分类查询接口公开 - 小程序未登录也能浏览分类
