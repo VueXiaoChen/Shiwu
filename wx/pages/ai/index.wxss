@@ -1,17 +1,16 @@
 /**
- * AI 找物助手页样式 — 淡色极简风
+ * AI 找物助手页样式 — 轻盈聊天风（悬浮输入栏版）
  *
  * 依旧遵守：无紫色、无渐变、淡色系、浅阴影、无 emoji
- * 新增：图片上传按钮、消息内图片、已选图片预览条
  */
 
  .page {
-  /* 全局 page 关闭了页面级滚动，本页用 flex 纵向布局：消息区 + 输入栏 */
   display: flex;
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
   position: relative;
+  background: #f6f7f9;
 }
 
 /* ============================================
@@ -20,7 +19,7 @@
 .msg-scroll {
   flex: 1;
   min-height: 0;
-  padding: 24rpx 24rpx 0;
+  padding: 24rpx 28rpx 0;
   box-sizing: border-box;
 }
 
@@ -28,35 +27,36 @@
 .ai-tip {
   display: flex;
   justify-content: center;
-  margin-bottom: 28rpx;
+  margin-bottom: 32rpx;
 }
 
 .ai-tip-text {
   font-size: 21rpx;
-  color: var(--color-text-placeholder);
-  background: var(--color-border-light);
-  border-radius: var(--radius-full, 999rpx);
+  color: #9aa3ad;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 999rpx;
   padding: 8rpx 24rpx;
 }
 
-/* 消息行：AI 在左，我在右 */
+/* 消息行 */
 .msg-row {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 32rpx;
+  margin-bottom: 36rpx;
 }
 
 .msg-row-me {
   flex-direction: row-reverse;
 }
 
-/* AI 头像（纯样式绘制） */
+/* AI 头像 */
 .ai-avatar {
-  width: 72rpx;
-  height: 72rpx;
+  width: 68rpx;
+  height: 68rpx;
   border-radius: 50%;
-  background: var(--color-primary-light);
-  border: 1rpx solid rgba(74, 144, 217, 0.25);
+  background: #ffffff;
+  border: 1rpx solid rgba(74, 144, 217, 0.18);
+  box-shadow: 0 4rpx 12rpx rgba(74, 144, 217, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,16 +64,16 @@
 }
 
 .ai-avatar-text {
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 800;
-  color: var(--color-primary);
+  color: #4a90d9;
   letter-spacing: 1rpx;
 }
 
 .msg-bubble-wrap {
   display: flex;
   flex-direction: column;
-  max-width: 76%;
+  max-width: 78%;
   margin: 0 18rpx;
 }
 
@@ -81,50 +81,54 @@
   align-items: flex-end;
 }
 
+/* 气泡 */
 .msg-bubble {
-  padding: 18rpx 24rpx;
-  background: var(--color-bg-card);
+  position: relative;
+  padding: 20rpx 26rpx;
+  background: #ffffff;
   border-radius: 4rpx 20rpx 20rpx 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
 .msg-bubble-me {
-  background: var(--color-primary);
+  background: #4a90d9;
   border-radius: 20rpx 4rpx 20rpx 20rpx;
+  box-shadow: 0 6rpx 18rpx rgba(74, 144, 217, 0.28);
 }
 
 .msg-text {
   font-size: 27rpx;
   line-height: 1.6;
-  color: var(--color-text-primary);
+  color: #1f2329;
   word-break: break-all;
   white-space: pre-line;
 }
 
 .msg-bubble-me .msg-text {
-  color: #fff;
+  color: #ffffff;
 }
 
 /* ============================================
-   消息中的图片（用户上传）
+   消息中的图片
    ============================================ */
 .msg-image-wrap {
   margin-top: 16rpx;
   max-width: 320rpx;
-  border-radius: var(--radius-md, 12rpx);
+  border-radius: 14rpx;
   overflow: hidden;
 }
 
 .msg-image {
   width: 100%;
   display: block;
-  border-radius: var(--radius-md, 12rpx);
+  border-radius: 14rpx;
 }
 
 /* ============================================
    匹配物品卡片
    ============================================ */
 .match-list {
-  margin-top: 16rpx;
+  margin-top: 18rpx;
   width: 100%;
 }
 
@@ -133,21 +137,23 @@
   align-items: center;
   padding: 20rpx;
   margin-bottom: 16rpx;
-  background: var(--color-bg-card);
-  border: 1rpx solid var(--color-border-light);
-  border-radius: var(--radius-lg, 16rpx);
-  box-shadow: var(--shadow-card);
+  background: #ffffff;
+  border: 1rpx solid #eef0f3;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .match-card:active {
-  background: var(--color-bg-page);
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
 }
 
 .match-thumb {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: var(--radius-md, 12rpx);
-  background: var(--color-bg-page);
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: 16rpx;
+  background: #f2f4f7;
   flex-shrink: 0;
 }
 
@@ -159,9 +165,9 @@
 
 .match-title {
   display: block;
-  font-size: 26rpx;
+  font-size: 27rpx;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: #1f2329;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -170,30 +176,31 @@
 .match-meta {
   display: flex;
   align-items: center;
-  margin-top: 10rpx;
+  margin-top: 12rpx;
 }
 
 .match-tag {
   font-size: 20rpx;
-  padding: 2rpx 12rpx;
-  border-radius: var(--radius-sm, 6rpx);
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
   margin-right: 12rpx;
   flex-shrink: 0;
+  font-weight: 600;
 }
 
 .match-tag-found {
-  color: var(--color-primary);
-  background: var(--color-primary-light);
+  color: #4a90d9;
+  background: rgba(74, 144, 217, 0.12);
 }
 
 .match-tag-lost {
-  color: var(--color-warning);
-  background: #fdf6e7;
+  color: #d48806;
+  background: rgba(212, 136, 6, 0.12);
 }
 
 .match-loc {
   font-size: 22rpx;
-  color: var(--color-text-muted);
+  color: #8a9099;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -202,22 +209,21 @@
 .match-time {
   display: block;
   font-size: 20rpx;
-  color: var(--color-text-placeholder);
-  margin-top: 8rpx;
+  color: #b3b8c0;
+  margin-top: 10rpx;
 }
 
-/* 卡片右箭头 */
 .match-arrow {
   width: 14rpx;
   height: 14rpx;
-  border-top: 3rpx solid var(--color-text-placeholder);
-  border-right: 3rpx solid var(--color-text-placeholder);
+  border-top: 3rpx solid #c5cad1;
+  border-right: 3rpx solid #c5cad1;
   transform: rotate(45deg);
   flex-shrink: 0;
 }
 
 /* ============================================
-   引导操作按钮（去发布）
+   引导操作按钮
    ============================================ */
 .action-btn {
   align-self: flex-start;
@@ -225,14 +231,15 @@
   padding: 14rpx 36rpx;
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--color-primary);
-  background: var(--color-primary-light);
-  border: 1rpx solid rgba(74, 144, 217, 0.3);
-  border-radius: var(--radius-full, 999rpx);
+  color: #4a90d9;
+  background: rgba(74, 144, 217, 0.1);
+  border: 1rpx solid rgba(74, 144, 217, 0.28);
+  border-radius: 999rpx;
+  transition: all 0.15s ease;
 }
 
 .action-btn:active {
-  opacity: 0.8;
+  background: rgba(74, 144, 217, 0.18);
 }
 
 /* ============================================
@@ -242,28 +249,35 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin-top: 20rpx;
+  margin-top: 22rpx;
+  width: 100%;
 }
 
 .quick-label {
   font-size: 22rpx;
-  color: var(--color-text-placeholder);
-  margin-bottom: 12rpx;
+  color: #b3b8c0;
+  margin-bottom: 14rpx;
+}
+
+.quick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
 }
 
 .quick-chip {
-  padding: 12rpx 28rpx;
-  margin-bottom: 14rpx;
+  padding: 14rpx 28rpx;
   font-size: 25rpx;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-card);
-  border: 1rpx solid var(--color-border);
-  border-radius: var(--radius-full, 999rpx);
+  color: #4a5560;
+  background: #ffffff;
+  border: 1rpx solid #e7eaee;
+  border-radius: 999rpx;
+  transition: all 0.15s ease;
 }
 
 .quick-chip:active {
-  color: var(--color-primary);
-  background: var(--color-primary-light);
+  color: #4a90d9;
+  background: rgba(74, 144, 217, 0.08);
   border-color: rgba(74, 144, 217, 0.3);
 }
 
@@ -274,14 +288,14 @@
   display: flex;
   align-items: center;
   gap: 10rpx;
-  padding: 24rpx 28rpx;
+  padding: 26rpx 30rpx;
 }
 
 .think-dot {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: #4a90d9;
   opacity: 0.3;
   animation: think-blink 1.2s infinite;
 }
@@ -299,93 +313,160 @@
   40% { opacity: 1; transform: translateY(-6rpx); }
 }
 
-/* 底部留白，防止最后一条消息贴住输入栏 */
+/* 底部留白：给悬浮输入栏让出空间 */
 .msg-scroll-pad {
-  height: 24rpx;
+  height: 180rpx;
 }
 
 /* ============================================
-   底部输入栏
+   底部输入栏（悬浮胶囊，强制水平居中）
    ============================================ */
 .input-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 694rpx;
+  max-width: calc(100% - 56rpx);
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
-  flex-shrink: 0;
-  padding: 16rpx 24rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  background: var(--color-bg-card);
-  border-top: 1rpx solid var(--color-border-light);
+  height: 88rpx;
+  padding: 0;
+  background: #ffffff;
+  border: 1rpx solid #e7eaee;
+  border-radius: 999rpx;
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  box-sizing: border-box;
 }
 
-/* 图片上传按钮 */
+/* 输入区外壳 */
+.input-shell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  padding-left: 10rpx;
+  padding-right: 10rpx;
+}
+
+/* 上传按钮 */
 .upload-btn {
   flex-shrink: 0;
-  width: 72rpx;
-  height: 72rpx;
-  margin-right: 16rpx;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
-  background: var(--color-bg-page);
-  border: 1rpx solid var(--color-border-light);
+  background: #f2f4f7;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .upload-btn:active {
-  background: var(--color-border-light);
+  background: #e8ebef;
 }
 
+/* 加号 */
 .upload-icon {
-  font-size: 44rpx;
-  font-weight: 300;
-  color: var(--color-primary);
-  line-height: 1;
-  margin-top: -4rpx;
+  position: relative;
+  width: 22rpx;
+  height: 22rpx;
 }
 
+.upload-icon-h {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 22rpx;
+  height: 4rpx;
+  margin-top: -2rpx;
+  border-radius: 2rpx;
+  background: #4a90d9;
+}
+
+.upload-icon-v {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 4rpx;
+  height: 22rpx;
+  margin-left: -2rpx;
+  border-radius: 2rpx;
+  background: #4a90d9;
+}
+
+/* 输入框外层 */
+.input-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+}
+
+/* 输入框本体：高度 auto，由外层 flex 垂直居中 */
 .input-field {
   flex: 1;
-  height: 72rpx;
-  padding: 0 28rpx;
+  min-width: 0;
+  height: auto;
+  padding: 0 16rpx;
   font-size: 27rpx;
-  color: var(--color-text-primary);
-  background: var(--color-bg-page);
-  border-radius: var(--radius-full, 999rpx);
+  color: #1f2329;
+  background: transparent;
 }
 
+/* 发送键 */
 .send-btn {
   flex-shrink: 0;
-  margin-left: 20rpx;
-  padding: 0 36rpx;
-  height: 72rpx;
-  line-height: 72rpx;
-  font-size: 27rpx;
-  color: #fff;
-  background: var(--color-text-placeholder);
-  border-radius: var(--radius-full, 999rpx);
-  transition: background 0.2s;
+  width: 68rpx;
+  height: 68rpx;
+  margin-right: 10rpx;
+  border-radius: 50%;
+  background: #c5cad1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.send-btn:active {
+  transform: scale(0.92);
 }
 
 .send-btn-active {
-  background: var(--color-primary);
+  background: #4a90d9;
+  box-shadow: 0 6rpx 16rpx rgba(74, 144, 217, 0.35);
+}
+
+/* 发送箭头 */
+.send-arrow {
+  width: 14rpx;
+  height: 14rpx;
+  border-top: 4rpx solid #ffffff;
+  border-right: 4rpx solid #ffffff;
+  transform: rotate(45deg) translate(-2rpx, 2rpx);
 }
 
 /* ============================================
    已选图片预览条
    ============================================ */
 .preview-bar {
-  position: absolute;
-  left: 24rpx;
-  right: 24rpx;
-  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 694rpx;
+  max-width: calc(100% - 56rpx);
+  bottom: calc(128rpx + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   padding: 16rpx 20rpx;
-  background: var(--color-bg-card);
-  border: 1rpx solid var(--color-border-light);
-  border-radius: var(--radius-lg, 16rpx);
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
-  z-index: 10;
+  background: #ffffff;
+  border: 1rpx solid #e7eaee;
+  border-radius: 20rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(0, 0, 0, 0.08);
+  z-index: 19;
+  box-sizing: border-box;
 }
 
 .preview-item {
@@ -396,8 +477,8 @@
 .preview-image {
   width: 100rpx;
   height: 100rpx;
-  border-radius: var(--radius-md, 12rpx);
-  background: var(--color-bg-page);
+  border-radius: 14rpx;
+  background: #f2f4f7;
 }
 
 .preview-remove {
@@ -408,7 +489,7 @@
   height: 36rpx;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  color: #ffffff;
   font-size: 22rpx;
   display: flex;
   align-items: center;
@@ -420,6 +501,6 @@
   flex: 1;
   margin-left: 20rpx;
   font-size: 24rpx;
-  color: var(--color-text-muted);
+  color: #8a9099;
   line-height: 1.4;
 }

@@ -13,7 +13,7 @@ const categoryApi = require('../../api/category')
 const itemApi = require('../../api/item')
 const { upload } = require('../../utils/api')
 
-const MAX_IMAGES = 3
+const MAX_IMAGES = 10
 
 Page({
   data: {

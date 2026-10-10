@@ -13,7 +13,7 @@
   <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}"
         class="msg-row {{item.from === 'me' ? 'msg-row-me' : ''}}">
 
-    <!-- AI 头像（纯样式绘制，无图片依赖） -->
+    <!-- AI 头像 -->
     <view wx:if="{{item.from === 'ai'}}" class="ai-avatar">
       <text class="ai-avatar-text">AI</text>
     </view>
@@ -56,9 +56,11 @@
 
       <!-- 开场消息下方的快捷提问 -->
       <view wx:if="{{item.id === 1}}" class="quick-wrap">
-        <text class="quick-label">你可以试着问我：</text>
-        <view class="quick-chip" wx:for="{{quickQuestions}}" wx:for-item="q" wx:key="*this"
-              bindtap="onQuickTap" data-text="{{q}}">{{q}}</view>
+        <text class="quick-label">你可以试着问我</text>
+        <view class="quick-grid">
+          <view class="quick-chip" wx:for="{{quickQuestions}}" wx:for-item="q" wx:key="*this"
+                bindtap="onQuickTap" data-text="{{q}}">{{q}}</view>
+        </view>
       </view>
     </view>
   </view>
@@ -77,24 +79,31 @@
     </view>
   </view>
 
-  <!-- 底部留白，避免被输入栏遮挡 -->
+  <!-- 底部留白 -->
   <view class="msg-scroll-pad"></view>
 </scroll-view>
 
-<!-- ========== 底部输入栏 ========== -->
+<!-- ========== 底部输入栏（悬浮胶囊） ========== -->
 <view class="input-bar">
-  <!-- 图片上传按钮 -->
-  <view class="upload-btn" bindtap="chooseImage">
-    <view class="upload-icon">+</view>
+  <view class="input-shell">
+    <view class="upload-btn" bindtap="chooseImage">
+      <view class="upload-icon">
+        <view class="upload-icon-h"></view>
+        <view class="upload-icon-v"></view>
+      </view>
+    </view>
+    <view class="input-wrap">
+      <input class="input-field"
+             value="{{inputText}}"
+             placeholder="描述你丢失 / 捡到的物品..."
+             confirm-type="send"
+             bindinput="onInput"
+             bindconfirm="send" />
+    </view>
   </view>
-
-  <input class="input-field"
-         value="{{inputText}}"
-         placeholder="描述你丢失 / 捡到的物品..."
-         confirm-type="send"
-         bindinput="onInput"
-         bindconfirm="send" />
-  <view class="send-btn {{(inputText || selectedImage) && !thinking ? 'send-btn-active' : ''}}" bindtap="send">发送</view>
+  <view class="send-btn {{(inputText || selectedImage) && !thinking ? 'send-btn-active' : ''}}" bindtap="send">
+    <view class="send-arrow"></view>
+  </view>
 </view>
 
 <!-- 已选图片预览条 -->

@@ -6,23 +6,23 @@
   <view style="height: {{statusBarHeight}}px;"></view>
 
   <view class="hero-nav">
-    <text class="hero-brand">校园失物招领</text>
+    <text class="hero-brand">小陈寻视频图平台</text>
   </view>
 
   <view class="hero-slogan-row">
-    <text class="hero-slogan">让每一件失物，都能回家</text>
+    <text class="hero-slogan">让每一个视频图，大家都能找到心仪的</text>
     <view class="hero-slogan-line"></view>
   </view>
 
   <view class="hero-search-row">
     <view class="hero-search" bindtap="goSearch">
       <view class="search-icon"></view>
-      <text class="hero-search-ph">搜索丢失 / 拾到的物品</text>
+      <text class="hero-search-ph">搜已发布 / 寻找的视频图</text>
       <view class="hero-search-btn">搜索</view>
     </view>
     <view class="hero-ai-btn" bindtap="goAI">
       <view class="hero-ai-spark"></view>
-      <text class="hero-ai-text">AI 找物</text>
+      <text class="hero-ai-text">AI 找视频图</text>
     </view>
   </view>
 
@@ -36,12 +36,12 @@
     <view class="hs-item {{activeTab === 'found' ? 'hs-item-active' : ''}}"
           bindtap="onStatsTap" data-tab="found">
       <text class="hs-num">{{stats.found}}</text>
-      <text class="hs-label">失物招领</text>
+      <text class="hs-label">寻视频图</text>
     </view>
     <view class="hs-item {{activeTab === 'lost' ? 'hs-item-active' : ''}}"
           bindtap="onStatsTap" data-tab="lost">
       <text class="hs-num">{{stats.lost}}</text>
-      <text class="hs-label">寻物启事</text>
+      <text class="hs-label">发视频图</text>
     </view>
   </view>
 </view>
@@ -54,8 +54,8 @@
       <view class="ei-search-handle"></view>
     </view>
     <view class="entry-texts">
-      <text class="entry-title">我丢东西了</text>
-      <text class="entry-sub">发布寻物启事</text>
+      <text class="entry-title">寻找视频图</text>
+      <text class="entry-sub">寻找视频图</text>
     </view>
     <view class="entry-arrow"></view>
   </view>
@@ -65,8 +65,8 @@
       <view class="ei-hand-dot"></view>
     </view>
     <view class="entry-texts">
-      <text class="entry-title">我捡到了</text>
-      <text class="entry-sub">发布失物招领</text>
+      <text class="entry-title">发布视频图</text>
+      <text class="entry-sub">发布视频图</text>
     </view>
     <view class="entry-arrow"></view>
   </view>
@@ -93,7 +93,7 @@
           wx:for="{{categories}}" wx:key="id"
           bindtap="onCategoryTap" data-id="{{item.id}}">
       <view class="cate-tile cate-tile-c{{index % 8}}">
-        <image wx:if="{{item.icon}}" class="cate-img" src="{{item.icon}}" mode="aspectFit"></image>
+        <view wx:if="{{item.icon}}" class="cate-img" style="background-image: url('{{item.icon}}');"></view>
         <view wx:else class="cate-icon cate-icon-default"></view>
       </view>
       <text class="cate-name">{{item.name}}</text>
@@ -109,7 +109,7 @@
       <text>全部</text>
       <view class="ftab-line"></view>
     </view>
-    <view class="ftab {{activeTab === 'found' ? 'ftab-active' : ''}}"
+    <!-- <view class="ftab {{activeTab === 'found' ? 'ftab-active' : ''}}"
           bindtap="onTabChange" data-tab="found">
       <text>找视图频</text>
       <view class="ftab-line"></view>
@@ -118,7 +118,7 @@
           bindtap="onTabChange" data-tab="lost">
       <text>已找视图频</text>
       <view class="ftab-line"></view>
-    </view>
+    </view> -->
   </view>
   <view class="urgent-chip {{onlyUrgent ? 'urgent-chip-active' : ''}}" bindtap="toggleUrgent">
     <text class="urgent-label">急寻</text>
@@ -134,7 +134,7 @@
     <view class="feed-card" wx:for="{{leftList}}" wx:key="id"
           bindtap="goDetail" data-id="{{item.id}}">
       <view class="fc-img-wrap">
-        <image class="fc-img" src="{{item.images[0]}}" mode="widthFix" lazy-load />
+        <view class="fc-img" style="background-image: url('{{item.images[0]}}');"></view>
         <view class="fc-type {{item.type === 'found' ? 'fc-type-found' : 'fc-type-lost'}}">
           {{item.type === 'found' ? '招领' : '寻物'}}
         </view>
@@ -153,7 +153,7 @@
           {{item.reward ? '酬谢 ' + item.reward : '暂无酬谢'}}
         </view>
         <view class="fc-foot">
-          <image class="fc-avatar" src="{{item.publisher.avatar}}" mode="aspectFill" />
+          <view class="fc-avatar" style="background-image: url('{{item.publisher.avatar}}');"></view>
           <text class="fc-name">{{item.publisher.name}}</text>
           <text class="fc-time">{{item.publishTime}}</text>
         </view>
@@ -164,7 +164,7 @@
     <view class="feed-card" wx:for="{{rightList}}" wx:key="id"
           bindtap="goDetail" data-id="{{item.id}}">
       <view class="fc-img-wrap">
-        <image class="fc-img" src="{{item.images[0]}}" mode="widthFix" lazy-load />
+        <view class="fc-img" style="background-image: url('{{item.images[0]}}');"></view>
         <view class="fc-type {{item.type === 'found' ? 'fc-type-found' : 'fc-type-lost'}}">
           {{item.type === 'found' ? '招领' : '寻物'}}
         </view>
@@ -183,7 +183,7 @@
           {{item.reward ? '酬谢 ' + item.reward : '暂无酬谢'}}
         </view>
         <view class="fc-foot">
-          <image class="fc-avatar" src="{{item.publisher.avatar}}" mode="aspectFill" />
+          <view class="fc-avatar" style="background-image: url('{{item.publisher.avatar}}');"></view>
           <text class="fc-name">{{item.publisher.name}}</text>
           <text class="fc-time">{{item.publishTime}}</text>
         </view>

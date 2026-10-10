@@ -44,7 +44,7 @@ App({
     // 发布页类型意图（lost/found），首页入口跳转 tabBar 发布页时传递
     publishType: '',
     // 后端API基础地址（开发环境使用本地，生产环境需替换为正式域名）
-    baseUrl: 'http://localhost:8080'
+    baseUrl: 'http://192.168.5.2:8080'
   },
 
   /**

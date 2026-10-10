@@ -1,8 +1,9 @@
 /**
  * 物品详情页样式 — 淡色极简风
+ * 图片统一用 background-image 渲染，避免真机 <image> 空白问题
  */
 
-.page {
+ .page {
   /* 全局 page 关闭了页面级滚动（overflow: hidden），由本容器接管滚动 */
   height: 100vh;
   overflow-y: auto;
@@ -23,9 +24,14 @@
   height: 520rpx;
 }
 
+/* 轮播大图：背景图渲染 */
 .gallery-img {
   width: 100%;
   height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f2f4f7;
 }
 
 .gallery-count {
@@ -226,12 +232,17 @@
   align-items: center;
 }
 
+/* 发布人头像：背景图渲染 */
 .pub-avatar {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
   flex-shrink: 0;
   border: 1rpx solid var(--color-border-light);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f2f4f7;
 }
 
 .pub-info {
@@ -287,11 +298,16 @@
   padding-bottom: 0;
 }
 
+/* 相关推荐缩略图：背景图渲染 */
 .related-thumb {
   width: 108rpx;
   height: 108rpx;
   border-radius: var(--radius-md);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f2f4f7;
 }
 
 .related-info {

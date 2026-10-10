@@ -1,116 +1,116 @@
 <!-- 物品详情页 -->
 <view class="page" wx:if="{{item}}">
 
-  <!-- ========== 图片轮播 ========== -->
-  <view class="gallery">
-    <swiper class="gallery-swiper" circular="{{item.images.length > 1}}" bindchange="onSwiperChange">
-      <swiper-item wx:for="{{item.images}}" wx:key="index">
-        <image class="gallery-img" src="{{item}}" mode="aspectFill"
-               bindtap="previewImage" data-src="{{item}}" />
-      </swiper-item>
-    </swiper>
-    <!-- 页码指示 -->
-    <view wx:if="{{item.images.length > 1}}" class="gallery-count">
-      {{currentSwiper + 1}} / {{item.images.length}}
+<!-- ========== 图片轮播 ========== -->
+<view class="gallery">
+  <swiper class="gallery-swiper" circular="{{item.images.length > 1}}" bindchange="onSwiperChange">
+    <swiper-item wx:for="{{item.images}}" wx:for-item="img" wx:key="index">
+      <view class="gallery-img" style="background-image: url('{{img}}');"
+            bindtap="previewImage" data-src="{{img}}"></view>
+    </swiper-item>
+  </swiper>
+  <!-- 页码指示 -->
+  <view wx:if="{{item.images.length > 1}}" class="gallery-count">
+    {{currentSwiper + 1}} / {{item.images.length}}
+  </view>
+  <!-- 已完成角标 -->
+  <view wx:if="{{item.status === 'done'}}" class="gallery-done">
+    {{item.type === 'found' ? '已归还' : '已找回'}}
+  </view>
+</view>
+
+<!-- ========== 主信息卡 ========== -->
+<view class="info-card">
+  <view class="info-title-row">
+    <view class="type-tag {{item.type === 'found' ? 'tag-found' : 'tag-lost'}}">
+      {{item.type === 'found' ? '失物招领' : '寻物启事'}}
     </view>
-    <!-- 已完成角标 -->
-    <view wx:if="{{item.status === 'done'}}" class="gallery-done">
-      {{item.type === 'found' ? '已归还' : '已找回'}}
-    </view>
+    <view wx:if="{{item.urgent}}" class="urgent-tag">急寻</view>
   </view>
 
-  <!-- ========== 主信息卡 ========== -->
-  <view class="info-card">
-    <view class="info-title-row">
-      <view class="type-tag {{item.type === 'found' ? 'tag-found' : 'tag-lost'}}">
-        {{item.type === 'found' ? '失物招领' : '寻物启事'}}
-      </view>
-      <view wx:if="{{item.urgent}}" class="urgent-tag">急寻</view>
-    </view>
+  <text class="info-title">{{item.title}}</text>
 
-    <text class="info-title">{{item.title}}</text>
-
-    <view class="info-chips">
-      <view class="info-chip">{{item.categoryName}}</view>
-      <view wx:if="{{item.reward}}" class="info-chip info-chip-reward">酬谢 {{item.reward}}</view>
-      <view class="info-chip info-chip-plain">{{item.views}} 次浏览</view>
-    </view>
-
-    <view class="divider-thin info-divider"></view>
-
-    <!-- 关键信息行 -->
-    <view class="kv-row">
-      <text class="kv-label">{{item.type === 'found' ? '拾获地点' : '丢失地点'}}</text>
-      <text class="kv-value">{{item.location}}</text>
-    </view>
-    <view class="kv-row">
-      <text class="kv-label">{{item.type === 'found' ? '拾获时间' : '丢失时间'}}</text>
-      <text class="kv-value">{{item.happenTime}}</text>
-    </view>
-    <view class="kv-row">
-      <text class="kv-label">发布时间</text>
-      <text class="kv-value">{{item.publishTime}}</text>
-    </view>
+  <view class="info-chips">
+    <view class="info-chip">{{item.categoryName}}</view>
+    <view wx:if="{{item.reward}}" class="info-chip info-chip-reward">酬谢 {{item.reward}}</view>
+    <view class="info-chip info-chip-plain">{{item.views}} 次浏览</view>
   </view>
 
-  <!-- ========== 详细描述 ========== -->
-  <view class="desc-card">
-    <view class="card-head">
-      <view class="card-head-bar"></view>
-      <text class="card-head-title">详细描述</text>
-    </view>
-    <text class="desc-text">{{item.desc}}</text>
+  <view class="divider-thin info-divider"></view>
 
-    <!-- 认领提示 -->
-    <view class="tip-box">
-      <text class="tip-text">{{item.type === 'found' ? '认领时请准确描述物品特征，核对无误后当面交接' : '如有拾获请通过联系方式与失主取得联系，感谢帮助'}}</text>
-    </view>
+  <!-- 关键信息行 -->
+  <view class="kv-row">
+    <text class="kv-label">{{item.type === 'found' ? '视图地址' : '视图地址'}}</text>
+    <text class="kv-value">{{item.location}}</text>
   </view>
-
-  <!-- ========== 发布人卡片 ========== -->
-  <view class="publisher-card">
-    <image class="pub-avatar" src="{{item.publisher.avatar}}" mode="aspectFill" />
-    <view class="pub-info">
-      <text class="pub-name">{{item.publisher.name}}</text>
-      <text class="pub-campus">发布于 {{item.publishTime}}</text>
-    </view>
-    <view class="pub-role">{{item.type === 'found' ? '拾主' : '失主'}}</view>
+  <view class="kv-row">
+    <text class="kv-label">{{item.type === 'found' ? '寻找时间' : '发布时间'}}</text>
+    <text class="kv-value">{{item.happenTime}}</text>
   </view>
+  <view class="kv-row">
+    <text class="kv-label">发布时间</text>
+    <text class="kv-value">{{item.publishTime}}</text>
+  </view>
+</view>
 
-  <!-- ========== 相关推荐 ========== -->
-  <view class="related-card" wx:if="{{related.length > 0}}">
-    <view class="card-head">
-      <view class="card-head-bar"></view>
-      <text class="card-head-title">相关推荐</text>
-    </view>
-    <view class="related-item" wx:for="{{related}}" wx:key="id"
-          bindtap="goDetail" data-id="{{item.id}}">
-      <image class="related-thumb" src="{{item.images[0]}}" mode="aspectFill" lazy-load />
-      <view class="related-info">
-        <text class="related-title">{{item.title}}</text>
-        <view class="related-meta">
-          <view class="related-type-tag {{item.type === 'found' ? 'tag-found' : 'tag-lost'}}">
-            {{item.type === 'found' ? '招领' : '寻物'}}
-          </view>
-          <text class="related-time">{{item.publishTime}}</text>
+<!-- ========== 详细描述 ========== -->
+<view class="desc-card">
+  <view class="card-head">
+    <view class="card-head-bar"></view>
+    <text class="card-head-title">详细描述</text>
+  </view>
+  <text class="desc-text">{{item.desc}}</text>
+
+  <!-- 认领提示 -->
+  <view class="tip-box">
+    <text class="tip-text">{{item.type === 'found' ? '认领时请准确描述视频完全正确，核对无误后当面交接' : '如有发现请通过联系方式取得联系，感谢帮助'}}</text>
+  </view>
+</view>
+
+<!-- ========== 发布人卡片 ========== -->
+<view class="publisher-card">
+  <view class="pub-avatar" style="background-image: url('{{item.publisher.avatar}}');"></view>
+  <view class="pub-info">
+    <text class="pub-name">{{item.publisher.name}}</text>
+    <text class="pub-campus">发布于 {{item.publishTime}}</text>
+  </view>
+  <view class="pub-role">{{item.type === 'found' ? '拾主' : '失主'}}</view>
+</view>
+
+<!-- ========== 相关推荐 ========== -->
+<view class="related-card" wx:if="{{related.length > 0}}">
+  <view class="card-head">
+    <view class="card-head-bar"></view>
+    <text class="card-head-title">相关推荐</text>
+  </view>
+  <view class="related-item" wx:for="{{related}}" wx:key="id"
+        bindtap="goDetail" data-id="{{item.id}}">
+    <view class="related-thumb" style="background-image: url('{{item.images[0]}}');"></view>
+    <view class="related-info">
+      <text class="related-title">{{item.title}}</text>
+      <view class="related-meta">
+        <view class="related-type-tag {{item.type === 'found' ? 'tag-found' : 'tag-lost'}}">
+          {{item.type === 'found' ? '招领' : '寻物'}}
         </view>
+        <text class="related-time">{{item.publishTime}}</text>
       </view>
-      <view class="related-arrow"></view>
     </view>
+    <view class="related-arrow"></view>
   </view>
+</view>
 
-  <!-- ========== 底部操作栏 ========== -->
-  <view class="action-bar">
-    <!-- 自己发布的信息：不给沟通入口，去"我的发布"里管理 -->
-    <view wx:if="{{isMine}}" class="act-main act-main-disabled">
-      这是你发布的信息
-    </view>
-    <view wx:elif="{{item.status === 'open'}}" class="act-main" bindtap="goChat">
-      {{item.type === 'found' ? '这是我的，联系认领' : '我捡到了，联系失主'}}
-    </view>
-    <view wx:else class="act-main act-main-disabled">
-      {{item.type === 'found' ? '物品已归还' : '物品已找回'}}
-    </view>
+<!-- ========== 底部操作栏 ========== -->
+<view class="action-bar">
+  <!-- 自己发布的信息：不给沟通入口，去"我的发布"里管理 -->
+  <view wx:if="{{isMine}}" class="act-main act-main-disabled">
+    这是你发布的信息
   </view>
+  <view wx:elif="{{item.status === 'open'}}" class="act-main" bindtap="goChat">
+    {{item.type === 'found' ? '这是我的，联系认领' : '我捡到了，联系失主'}}
+  </view>
+  <view wx:else class="act-main act-main-disabled">
+    {{item.type === 'found' ? '物品已归还' : '物品已找回'}}
+  </view>
+</view>
 
 </view>

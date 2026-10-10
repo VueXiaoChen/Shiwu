@@ -2,11 +2,10 @@
  * 首页样式 — 重设计版
  *
  * 设计语言：沉浸式纯色品牌头 + 卡片叠压层次 + 双列瀑布流
- * 依旧遵守：无紫色、无渐变、淡色系、浅阴影、无 emoji
+ * 图片统一用 background-image 渲染，避免真机 <image> 空白问题
  */
 
  .page {
-  /* 全局 page 关闭了页面级滚动（overflow: hidden），由本容器接管滚动 */
   height: 100vh;
   overflow-y: auto;
   padding-bottom: 160rpx;
@@ -24,7 +23,6 @@
   overflow: hidden;
 }
 
-/* 装饰圆环（半透明白，制造层次不用渐变） */
 .hero::before {
   content: '';
   position: absolute;
@@ -47,7 +45,6 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-/* 导航标题行（自定义导航栏） */
 .hero-nav {
   position: relative;
   z-index: 1;
@@ -63,7 +60,6 @@
   letter-spacing: 2rpx;
 }
 
-/* 标语行 */
 .hero-slogan-row {
   position: relative;
   z-index: 1;
@@ -86,7 +82,6 @@
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* 搜索栏 + AI 找物入口行 */
 .hero-search-row {
   position: relative;
   z-index: 1;
@@ -96,7 +91,6 @@
   margin-top: 32rpx;
 }
 
-/* 搜索栏 */
 .hero-search {
   flex: 1;
   min-width: 0;
@@ -133,7 +127,7 @@
 
 .hero-search-ph {
   flex: 1;
-  font-size: 26rpx;
+  font-size: 22rpx;
   color: var(--color-text-placeholder);
 }
 
@@ -150,7 +144,6 @@
   border-radius: var(--radius-full);
 }
 
-/* AI 找物入口按钮 */
 .hero-ai-btn {
   flex-shrink: 0;
   display: flex;
@@ -167,7 +160,6 @@
   opacity: 0.85;
 }
 
-/* 星形火花（两个交叉菱形绘制，无图片依赖） */
 .hero-ai-spark {
   width: 14rpx;
   height: 14rpx;
@@ -207,7 +199,6 @@
   padding: 0 8rpx;
 }
 
-/* 每个统计项 = 一张玻璃卡 */
 .hs-item {
   position: relative;
   z-index: 2;
@@ -221,11 +212,9 @@
   border-radius: 20rpx;
   background: rgba(255, 255, 255, 0.12);
   border: 1rpx solid rgba(255, 255, 255, 0.16);
-  /* 只过渡颜色，去掉 transform，避免点击时位移闪动 */
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* 点击反馈改轻，不再缩放 */
 .hs-item:active {
   opacity: 0.9;
 }
@@ -245,7 +234,6 @@
   transition: color 0.2s ease;
 }
 
-/* 选中态：实心白卡，数字变主色，带轻投影 */
 .hs-item-active {
   background: #ffffff;
   border-color: #ffffff;
@@ -261,13 +249,12 @@
   font-weight: 600;
 }
 
-/* 旧版竖分隔线，新布局不再使用，保留定义防止其他位置引用 */
 .hs-gap {
   display: none;
 }
 
 /* ============================================
-   双发布入口卡（负 margin 叠压在品牌头上）
+   双发布入口卡
    ============================================ */
 .entry-row {
   position: relative;
@@ -291,19 +278,16 @@
   transform: scale(0.97);
 }
 
-/* 寻物 — 暖橙纸感 */
 .entry-lost {
   background: #fff6ee;
   border: 1rpx solid #f5e3d2;
 }
 
-/* 招领 — 淡绿纸感 */
 .entry-found {
   background: #eefaf2;
   border: 1rpx solid #d8eede;
 }
 
-/* 图标块 */
 .entry-icon {
   position: relative;
   width: 76rpx;
@@ -320,7 +304,6 @@
   background: #d9f2e2;
 }
 
-/* 寻物图标：CSS 放大镜 */
 .ei-search-ring {
   position: absolute;
   top: 20rpx;
@@ -342,7 +325,6 @@
   transform: rotate(45deg);
 }
 
-/* 招领图标：CSS 托举（横线 + 圆点） */
 .ei-hand-line {
   position: absolute;
   left: 18rpx;
@@ -385,7 +367,6 @@
   color: var(--color-text-muted);
 }
 
-/* CSS 手绘右箭头 */
 .entry-arrow {
   width: 12rpx;
   height: 12rpx;
@@ -396,7 +377,7 @@
 }
 
 /* ============================================
-   公告条（极简线条式）
+   公告条
    ============================================ */
 .notice-bar {
   display: flex;
@@ -419,7 +400,6 @@
   height: 52rpx;
 }
 
-/* 单条公告（可点击进详情） */
 .notice-item {
   display: flex;
   align-items: center;
@@ -440,7 +420,6 @@
   text-overflow: ellipsis;
 }
 
-/* 右侧小箭头，提示可点击 */
 .notice-arrow {
   flex-shrink: 0;
   width: 12rpx;
@@ -452,7 +431,7 @@
 }
 
 /* ============================================
-   分类横滑条
+   分类横滑条（圆角矩形图标卡）
    ============================================ */
 .cate-scroll {
   margin-top: 12rpx;
@@ -477,18 +456,19 @@
 }
 
 .cate-tile {
+  position: relative;
   width: 88rpx;
   height: 88rpx;
-  border-radius: 28rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 3rpx solid transparent;
   box-sizing: border-box;
-  transition: border-color 0.15s;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-/* 分类底色 + 主色按序号循环取用（color 供选中态描边 currentColor 使用） */
 .cate-tile-c0 { background: #ecf3fb; color: #4a90d9; }
 .cate-tile-c1 { background: #fff7e6; color: #d48806; }
 .cate-tile-c2 { background: #e6f7ee; color: #389e0d; }
@@ -498,10 +478,15 @@
 .cate-tile-c6 { background: #fff2e8; color: #d4661a; }
 .cate-tile-c7 { background: #f5f5f5; color: #8c8c8c; }
 
-/* 后端上传的分类图标 */
+/* 后端上传的分类图标：背景图渲染，放大裁掉透明留白 */
 .cate-img {
-  width: 52rpx;
-  height: 52rpx;
+  width: 100%;
+  height: 100%;
+  border-radius: 24rpx;
+  background-size: 135%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: transparent;
 }
 
 /* 分类兜底图标（后端未配置图标时显示） */
@@ -513,13 +498,13 @@
   background-size: contain;
 }
 
-/* 兜底 — 收纳盒 */
 .cate-icon-default {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/%3E%3Cpath d='M3 8l9 5 9-5'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E");
 }
 
 .cate-item-active .cate-tile {
   border-color: currentColor;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 
 .cate-name {
@@ -534,7 +519,7 @@
 }
 
 /* ============================================
-   Tab 筛选栏（下划线式）
+   Tab 筛选栏
    ============================================ */
 .filter-bar {
   display: flex;
@@ -604,7 +589,6 @@
   transition: color 0.25s ease;
 }
 
-/* 拨动开关轨道 */
 .urgent-switch {
   position: relative;
   width: 60rpx;
@@ -614,7 +598,6 @@
   transition: background 0.25s ease;
 }
 
-/* 开关圆点 */
 .urgent-knob {
   position: absolute;
   top: 3rpx;
@@ -627,7 +610,6 @@
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 选中态 */
 .urgent-chip-active {
   background: #fff1f0;
   border-color: rgba(232, 116, 107, 0.4);
@@ -647,7 +629,7 @@
 }
 
 /* ============================================
-   双列瀑布卡片
+   双列瀑布卡片（图片背景图渲染）
    ============================================ */
 .feed {
   display: flex;
@@ -677,18 +659,23 @@
   transform: scale(0.975);
 }
 
-/* 图片区 */
 .fc-img-wrap {
   position: relative;
   width: 100%;
-  font-size: 0;
+  height: 340rpx;
+  background: #f2f4f7;
+  overflow: hidden;
 }
 
 .fc-img {
   width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f2f4f7;
 }
 
-/* 类型角标（毛玻璃白底 + 彩字） */
 .fc-type {
   position: absolute;
   top: 14rpx;
@@ -708,7 +695,6 @@
   color: #d4661a;
 }
 
-/* 急寻角标 */
 .fc-urgent {
   position: absolute;
   top: 14rpx;
@@ -721,7 +707,6 @@
   border-radius: var(--radius-full);
 }
 
-/* 已完成蒙层 */
 .fc-done {
   position: absolute;
   inset: 0;
@@ -740,7 +725,6 @@
   border-radius: var(--radius-full);
 }
 
-/* 内容区 */
 .fc-body {
   padding: 18rpx 20rpx 20rpx;
 }
@@ -756,14 +740,12 @@
   line-height: 1.45;
 }
 
-/* 地点行 */
 .fc-loc-row {
   display: flex;
   align-items: center;
   margin-top: 12rpx;
 }
 
-/* CSS 定位点（外圈 + 内芯） */
 .fc-loc-pin {
   width: 16rpx;
   height: 16rpx;
@@ -795,7 +777,6 @@
   text-overflow: ellipsis;
 }
 
-/* 酬谢 chip */
 .fc-reward {
   display: inline-block;
   margin-top: 12rpx;
@@ -806,7 +787,6 @@
   border-radius: var(--radius-sm);
 }
 
-/* 底部：发布人 + 时间 */
 .fc-foot {
   display: flex;
   align-items: center;
@@ -821,6 +801,10 @@
   border-radius: 50%;
   margin-right: 10rpx;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f2f4f7;
 }
 
 .fc-name {
@@ -841,7 +825,7 @@
 }
 
 /* ============================================
-   空状态图标（CSS 手绘）
+   空状态图标
    ============================================ */
 .empty-icon-ring {
   width: 96rpx;

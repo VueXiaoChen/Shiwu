@@ -123,7 +123,14 @@ Page({
     itemApi.selectItemList(params).then(res => {
       if (seq !== this._listSeq) return   // 已有更新的请求，丢弃本次结果
 
-      const list = formatItemList(res.rows)
+      // 列表接口返回 res.rows，是数组
+      const rows = Array.isArray(res.rows) ? res.rows : []
+      const list = formatItemList(rows)
+
+      console.log('格式化后 =', JSON.stringify(list.map(it => ({
+        id: it.id,
+        images: it.images
+      }))))
 
       // 按下标奇偶拆列，模拟瀑布流
       const leftList = []
@@ -132,7 +139,6 @@ Page({
         (i % 2 === 0 ? leftList : rightList).push(it)
       })
 
-      // 一次性替换，不在请求前清空旧列表
       this.setData({
         leftList,
         rightList,

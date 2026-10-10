@@ -93,7 +93,7 @@ function formatItem(item) {
  * @returns {Array}
  */
 function formatItemList(list) {
-  return (list || []).map(formatItem)
+  return (list || []).map(item => formatItem(item))
 }
 
 module.exports = {
