@@ -116,7 +116,13 @@ Page({
     if (activeCategoryId !== 0) params.categoryId = activeCategoryId
     if (onlyUrgent) params.urgent = 1
 
+    // 请求序号：只认最后一次请求的结果，丢弃过期的响应
+    const seq = (this._listSeq || 0) + 1
+    this._listSeq = seq
+
     itemApi.selectItemList(params).then(res => {
+      if (seq !== this._listSeq) return   // 已有更新的请求，丢弃本次结果
+
       const list = formatItemList(res.rows)
 
       // 按下标奇偶拆列，模拟瀑布流
@@ -126,13 +132,15 @@ Page({
         (i % 2 === 0 ? leftList : rightList).push(it)
       })
 
+      // 一次性替换，不在请求前清空旧列表
       this.setData({
         leftList,
         rightList,
         itemCount: list.length
       })
     }).catch(() => {
-      // 加载失败时列表清空，展示空状态
+      if (seq !== this._listSeq) return
+      // 加载失败时才清空，展示空状态
       this.setData({ leftList: [], rightList: [], itemCount: 0 })
     })
   },
@@ -151,6 +159,13 @@ Page({
   goNotice(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: '/pages/notice/index?id=' + id })
+  },
+
+  /** 点击统计数字 → 切换对应 Tab */
+  onStatsTap(e) {
+    const tab = e.currentTarget.dataset.tab
+    if (this.data.activeTab === tab) return   // 已是当前 Tab 就不重复请求
+    this.setData({ activeTab: tab }, () => this.refreshList())
   },
 
   /** 切换 Tab */

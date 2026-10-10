@@ -55,7 +55,13 @@ Page({
         id: c.categoryId,
         name: c.categoryName
       }))
-      this.setData({ categories })
+
+      // 分类加载完成后，默认选中第一个（用户尚未手动选择时）
+      const categoryIndex = this.data.categoryIndex < 0 && categories.length
+        ? 0
+        : this.data.categoryIndex
+
+      this.setData({ categories, categoryIndex })
     }).catch(() => {
       // 加载失败时分类列表留空，提交校验会提示重新选择
     })
@@ -203,7 +209,8 @@ Page({
   resetForm() {
     this.setData({
       type: 'lost',
-      categoryIndex: -1,
+      // 分类已加载时默认选中第一个，否则保持未选中
+      categoryIndex: this.data.categories.length ? 0 : -1,
       images: [],
       title: '',
       desc: '',

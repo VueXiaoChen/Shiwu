@@ -5,20 +5,20 @@
   <view class="type-switch">
     <view class="type-option {{type === 'lost' ? 'type-option-lost' : ''}}"
           bindtap="onTypeChange" data-type="lost">
-      <text class="type-name">寻物启事</text>
-      <text class="type-desc">我丢了东西</text>
+      <text class="type-name">寻图视频</text>
+      <text class="type-desc">我寻视地址</text>
     </view>
     <view class="type-option {{type === 'found' ? 'type-option-found' : ''}}"
           bindtap="onTypeChange" data-type="found">
-      <text class="type-name">失物招领</text>
-      <text class="type-desc">我捡到东西</text>
+      <text class="type-name">视频发现</text>
+      <text class="type-desc">我发现的视频</text>
     </view>
   </view>
 
   <!-- ========== 图片上传 ========== -->
   <view class="form-card">
     <view class="form-label-row">
-      <text class="form-label">物品照片</text>
+      <text class="form-label">视图频照片</text>
       <text class="form-label-tip">{{images.length}}/{{maxImages}}（选填）</text>
     </view>
     <view class="upload-grid">
@@ -47,7 +47,7 @@
         <text class="form-label-tip">{{title.length}}/30</text>
       </view>
       <input class="form-input" value="{{title}}" maxlength="30"
-             placeholder="{{type === 'lost' ? '一句话描述丢失的物品' : '一句话描述捡到的物品'}}"
+             placeholder="{{type === 'lost' ? '一句话描述视图频' : '一句话找到视图频'}}"
              placeholder-class="form-ph" bindinput="onTitleInput" />
     </view>
 
@@ -57,7 +57,7 @@
     <picker mode="selector" range="{{categories}}" range-key="name"
             value="{{categoryIndex}}" bindchange="onCategoryChange">
       <view class="form-row">
-        <text class="form-label"><text class="required">*</text>物品分类</text>
+        <text class="form-label"><text class="required">*</text>视图分类</text>
         <view class="form-row-right">
           <text class="{{categoryIndex >= 0 ? 'form-value' : 'form-ph'}}">{{categoryIndex >= 0 ? categories[categoryIndex].name : '请选择分类'}}</text>
           <view class="row-arrow"></view>
@@ -70,10 +70,10 @@
     <!-- 地点 -->
     <view class="form-group">
       <view class="form-label-row">
-        <text class="form-label"><text class="required">*</text>{{type === 'lost' ? '丢失地点' : '拾获地点'}}</text>
+        <text class="form-label"><text class="required">*</text>{{type === 'lost' ? '视频地址' : '已找视图频地址'}}</text>
       </view>
       <input class="form-input" value="{{location}}"
-             placeholder="如：图书馆三楼自习区"
+             placeholder="如：电报"
              placeholder-class="form-ph" bindinput="onLocationInput" />
     </view>
 
@@ -82,7 +82,7 @@
     <!-- 时间 -->
     <picker mode="date" value="{{happenTime}}" end="{{today}}" bindchange="onDateChange">
       <view class="form-row">
-        <text class="form-label"><text class="required">*</text>{{type === 'lost' ? '丢失时间' : '拾获时间'}}</text>
+        <text class="form-label"><text class="required">*</text>{{type === 'lost' ? '寻找时间' : '答视图时间'}}</text>
         <view class="form-row-right">
           <text class="form-value">{{happenTime}}</text>
           <view class="row-arrow"></view>
@@ -98,7 +98,7 @@
       <text class="form-label-tip">{{desc.length}}/200</text>
     </view>
     <textarea class="form-textarea" value="{{desc}}" maxlength="200"
-              placeholder="{{type === 'lost' ? '详细描述物品特征、丢失经过，方便好心人辨认' : '简单描述物品特征即可，细节留作认领核对，谨防冒领'}}"
+              placeholder="{{type === 'lost' ? '详细描该视图的发现地方' : '简单描述视图特征即可'}}"
               placeholder-class="form-ph" bindinput="onDescInput" />
   </view>
 
