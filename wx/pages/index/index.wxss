@@ -6,7 +6,7 @@
  */
 
  .page {
-  min-height: 100vh;              /* ✅ 改成 min-height，比 height:100vh 更安全 */
+  min-height: 100vh;
   padding-bottom: 160rpx;
   box-sizing: border-box;
   background: #f6f7f9;
@@ -253,6 +253,60 @@
 }
 
 /* ============================================
+   公告条
+   ============================================ */
+.notice-bar {
+  display: flex;
+  align-items: center;
+  margin: 24rpx 32rpx 0 60rpx;   /* 左边距 60rpx，需要更靠右就加大 */
+  height: 52rpx;
+}
+
+.notice-dot {
+  flex-shrink: 0;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--color-primary);
+  margin-right: 14rpx;
+}
+
+.notice-swiper {
+  flex: 1;
+  height: 52rpx;
+}
+
+.notice-item {
+  display: flex;
+  align-items: center;
+  height: 52rpx;
+}
+
+.notice-item-hover .notice-text {
+  color: var(--color-primary);
+}
+
+.notice-text {
+  flex: 1;
+  line-height: 52rpx;
+  font-size: 23rpx;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notice-arrow {
+  flex-shrink: 0;
+  width: 12rpx;
+  height: 12rpx;
+  margin-left: 12rpx;
+  border-top: 2rpx solid var(--color-text-placeholder);
+  border-right: 2rpx solid var(--color-text-placeholder);
+  transform: rotate(45deg);
+}
+
+/* ============================================
    双发布入口卡
    ============================================ */
 .entry-row {
@@ -260,7 +314,7 @@
   z-index: 2;
   display: flex;
   gap: 20rpx;
-  margin: -56rpx 24rpx 0;
+  margin: 20rpx 24rpx 0;      /* 原来 -56rpx，现在公告移到上面了，去掉向上叠压 */
 }
 
 .entry-card {
@@ -373,60 +427,6 @@
   border-right: 3rpx solid var(--color-text-placeholder);
   transform: rotate(45deg);
   flex-shrink: 0;
-}
-
-/* ============================================
-   公告条
-   ============================================ */
-.notice-bar {
-  display: flex;
-  align-items: center;
-  margin: 24rpx 32rpx 0;
-  height: 52rpx;
-}
-
-.notice-dot {
-  flex-shrink: 0;
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: var(--color-primary);
-  margin-right: 14rpx;
-}
-
-.notice-swiper {
-  flex: 1;
-  height: 52rpx;
-}
-
-.notice-item {
-  display: flex;
-  align-items: center;
-  height: 52rpx;
-}
-
-.notice-item-hover .notice-text {
-  color: var(--color-primary);
-}
-
-.notice-text {
-  flex: 1;
-  line-height: 52rpx;
-  font-size: 23rpx;
-  color: var(--color-text-muted);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.notice-arrow {
-  flex-shrink: 0;
-  width: 12rpx;
-  height: 12rpx;
-  margin-left: 12rpx;
-  border-top: 2rpx solid var(--color-text-placeholder);
-  border-right: 2rpx solid var(--color-text-placeholder);
-  transform: rotate(45deg);
 }
 
 /* ============================================
@@ -824,6 +824,13 @@
 /* ============================================
    空状态图标
    ============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 0;
+}
+
 .empty-icon-ring {
   width: 96rpx;
   height: 96rpx;
@@ -839,6 +846,18 @@
   height: 6rpx;
   border-radius: 3rpx;
   background: var(--color-border);
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--color-text-muted);
+  margin-top: 12rpx;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: var(--color-text-placeholder);
+  margin-top: 8rpx;
 }
 
 /* ============================================

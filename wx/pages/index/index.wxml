@@ -46,6 +46,28 @@
   </view>
 </view>
 
+<!-- ========== 公告（已修复：外面包回 notice-bar + 加回蓝点） ========== -->
+<view class="notice-bar">
+  <view class="notice-dot"></view>
+  <swiper
+    wx:if="{{notices && notices.length > 0}}"
+    class="notice-swiper"
+    vertical
+    autoplay
+    circular
+    interval="4000"
+    duration="500"
+  >
+    <swiper-item wx:for="{{notices}}" wx:key="id">
+      <view class="notice-item" hover-class="notice-item-hover"
+            bindtap="goNotice" data-id="{{item.id}}">
+        <text class="notice-text">{{item.title}}</text>
+        <view class="notice-arrow"></view>
+      </view>
+    </swiper-item>
+  </swiper>
+</view>
+
 <!-- ========== 双发布入口卡 ========== -->
 <view class="entry-row">
   <view class="entry-card entry-lost" bindtap="goPublish" data-type="lost">
@@ -71,25 +93,6 @@
     <view class="entry-arrow"></view>
   </view>
 </view>
-
-<!-- ========== 公告（关键修复：加 wx:if 防止 swiper 报 $$ 错） ========== -->
-<swiper
-  wx:if="{{notices && notices.length > 0}}"
-  class="notice-swiper"
-  vertical
-  autoplay
-  circular
-  interval="4000"
-  duration="500"
->
-  <swiper-item wx:for="{{notices}}" wx:key="id">
-    <view class="notice-item" hover-class="notice-item-hover"
-          bindtap="goNotice" data-id="{{item.id}}">
-      <text class="notice-text">{{item.title}}</text>
-      <view class="notice-arrow"></view>
-    </view>
-  </swiper-item>
-</swiper>
 
 <!-- ========== 分类横滑条 ========== -->
 <scroll-view class="cate-scroll" scroll-x enhanced show-scrollbar="{{false}}">
