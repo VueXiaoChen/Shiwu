@@ -72,19 +72,24 @@
   </view>
 </view>
 
-<!-- ========== 公告 ========== -->
-<view class="notice-bar">
-  <view class="notice-dot"></view>
-  <swiper class="notice-swiper" vertical autoplay circular interval="4000" duration="500">
-    <swiper-item wx:for="{{notices}}" wx:key="id">
-      <view class="notice-item" hover-class="notice-item-hover"
-            bindtap="goNotice" data-id="{{item.id}}">
-        <text class="notice-text">{{item.title}}</text>
-        <view class="notice-arrow"></view>
-      </view>
-    </swiper-item>
-  </swiper>
-</view>
+<!-- ========== 公告（关键修复：加 wx:if 防止 swiper 报 $$ 错） ========== -->
+<swiper
+  wx:if="{{notices && notices.length > 0}}"
+  class="notice-swiper"
+  vertical
+  autoplay
+  circular
+  interval="4000"
+  duration="500"
+>
+  <swiper-item wx:for="{{notices}}" wx:key="id">
+    <view class="notice-item" hover-class="notice-item-hover"
+          bindtap="goNotice" data-id="{{item.id}}">
+      <text class="notice-text">{{item.title}}</text>
+      <view class="notice-arrow"></view>
+    </view>
+  </swiper-item>
+</swiper>
 
 <!-- ========== 分类横滑条 ========== -->
 <scroll-view class="cate-scroll" scroll-x enhanced show-scrollbar="{{false}}">
@@ -109,16 +114,6 @@
       <text>全部</text>
       <view class="ftab-line"></view>
     </view>
-    <!-- <view class="ftab {{activeTab === 'found' ? 'ftab-active' : ''}}"
-          bindtap="onTabChange" data-tab="found">
-      <text>找视图频</text>
-      <view class="ftab-line"></view>
-    </view>
-    <view class="ftab {{activeTab === 'lost' ? 'ftab-active' : ''}}"
-          bindtap="onTabChange" data-tab="lost">
-      <text>已找视图频</text>
-      <view class="ftab-line"></view>
-    </view> -->
   </view>
   <view class="urgent-chip {{onlyUrgent ? 'urgent-chip-active' : ''}}" bindtap="toggleUrgent">
     <text class="urgent-label">急寻</text>
